@@ -185,3 +185,4 @@ class AnkhPainter extends CustomPainter {
       old.dotColor != dotColor ||
       old.enableGlow != enableGlow;
 }
+

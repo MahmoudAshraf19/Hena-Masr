@@ -54,3 +54,4 @@ class SplashLoadingBar extends StatelessWidget {
     );
   }
 }
+

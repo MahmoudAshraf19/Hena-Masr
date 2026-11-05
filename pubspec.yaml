@@ -79,12 +79,13 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/fonts/
+    - assets/google_fonts/
     - assets/icons/
-    - assets/icons/ankh.svg
-    - assets/icons/app_logo.png
     - assets/images/
     - assets/images/splash/
-    - assets/images/splash/splash.png
+    - assets/lottie/
+    - assets/seed/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
