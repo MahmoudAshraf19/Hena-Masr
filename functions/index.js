@@ -1,18 +1,24 @@
-const {setGlobalOptions} = require("firebase-functions");
-const {onRequest} = require("firebase-functions/https");
+const {setGlobalOptions} = require("firebase-functions/v2");
+const {onRequest} = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
-const admin = require("firebase-admin");
 
-// Initialize Firebase Admin SDK
-admin.initializeApp();
+// Global options for Cloud Functions v2
+setGlobalOptions({maxInstances: 10, region: "us-central1"});
 
-// Target database 'hena-masar'
-const db = admin.firestore();
-if (db.databaseId !== "hena-masar") {
-  // Configured in firebase.json
+let _admin;
+function getAdmin() {
+  if (!_admin) {
+    _admin = require("firebase-admin");
+    if (!_admin.apps.length) {
+      _admin.initializeApp();
+    }
+  }
+  return _admin;
 }
 
-setGlobalOptions({maxInstances: 10});
+function getDb() {
+  return getAdmin().firestore();
+}
 
 /**
  * Health check endpoint to verify backend connectivity.
@@ -32,6 +38,7 @@ exports.healthCheck = onRequest({cors: true}, (req, res) => {
  */
 exports.seedInitialData = onRequest({cors: true}, async (req, res) => {
   try {
+    const db = getDb();
     const citiesRef = db.collection("cities");
     const categoriesRef = db.collection("categories");
 
