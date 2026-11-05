@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:hena_masr/core/constants/asset_paths.dart';
 import 'package:hena_masr/core/localization/l10n_extension.dart';
 
 class SplashScreen extends StatelessWidget {
@@ -9,9 +10,20 @@ class SplashScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Text(
-          context.l10n.appName,
-          style: Theme.of(context).textTheme.displaySmall,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              AssetPaths.appLogo,
+              width: 120,
+              height: 120,
+            ),
+            const SizedBox(height: 24),
+            Text(
+              context.l10n.appName,
+              style: Theme.of(context).textTheme.displaySmall,
+            ),
+          ],
         ),
       ),
     );

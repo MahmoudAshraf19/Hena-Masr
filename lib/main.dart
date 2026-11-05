@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'core/constants/asset_paths.dart';
 import 'core/localization/supported_locales.dart';
 import 'core/theme/theme.dart';
 
@@ -54,7 +55,20 @@ class _DemoScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('هنا مصر')),
+      appBar: AppBar(
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              AssetPaths.appLogo,
+              height: 32,
+              width: 32,
+            ),
+            const SizedBox(width: 10),
+            const Text('هنا مصر'),
+          ],
+        ),
+      ),
       body: ListView(
         padding: AppSpacing.screen,
         children: [

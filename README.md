@@ -181,6 +181,11 @@ Fallback order: requested language, English, any available. RTL is handled autom
 
 ## Theme and brand
 
+### App Icon & Branding
+- Official App Logo: `assets/icons/app_logo.png`
+- Configured across Android (`mipmap-*`), iOS (`AppIcon.appiconset`), and Web (`favicon`, `icons`).
+- Integrated in `SplashScreen`, `_DemoScreen` AppBar, and exposed via `AssetPaths.appLogo`.
+
 Palette: **Egyptian Heritage**
 
 | Role | Name | HEX |
