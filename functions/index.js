@@ -6,6 +6,11 @@ const logger = require("firebase-functions/logger");
 setGlobalOptions({maxInstances: 10, region: "us-central1"});
 
 let _admin;
+
+/**
+ * Returns the lazily initialized Firebase Admin instance.
+ * @return {object} Firebase admin instance.
+ */
 function getAdmin() {
   if (!_admin) {
     _admin = require("firebase-admin");
@@ -16,6 +21,10 @@ function getAdmin() {
   return _admin;
 }
 
+/**
+ * Returns the Firestore database instance.
+ * @return {object} Firestore database.
+ */
 function getDb() {
   return getAdmin().firestore();
 }
