@@ -140,10 +140,10 @@ exports.seedInitialData = onRequest({cors: true}, async (req, res) => {
 
     await batch.commit();
 
-    logger.info("Database successfully seeded with initial cities & categories");
+    logger.info("Database seeded successfully with cities and categories");
     res.status(200).json({
       success: true,
-      message: "Seeded initial cities and categories successfully into hena-masar.",
+      message: "Seeded initial cities and categories into hena-masar.",
     });
   } catch (error) {
     logger.error("Error seeding initial data", error);

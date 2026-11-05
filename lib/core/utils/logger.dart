@@ -25,3 +25,4 @@ abstract final class AppLogger {
   static void error(dynamic message, [dynamic error, StackTrace? stackTrace]) =>
       _logger.e(message, error: error, stackTrace: stackTrace);
 }
+

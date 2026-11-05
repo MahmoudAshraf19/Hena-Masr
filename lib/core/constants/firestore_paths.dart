@@ -37,3 +37,4 @@ abstract final class FirestorePaths {
   /// Returns path to AI chat history: `users/{userId}/ai_chats`
   static String userAiChats(String userId) => '$users/$userId/ai_chats';
 }
+
