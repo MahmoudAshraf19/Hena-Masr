@@ -1,0 +1,20 @@
+{
+  "@@locale": "de",
+  "appName": "Hena Masr",
+  "explore": "Entdecken",
+  "map": "Karte",
+  "trips": "Reisen",
+  "saved": "Gespeichert",
+  "profile": "Profil",
+  "gettingThere": "Anreise",
+  "scamShield": "Betrugsschutz",
+  "fairPrice": "Fairer Preis",
+  "addToTrip": "Zur Reise hinzufügen",
+  "downloadOffline": "Offline herunterladen",
+  "openInMaps": "Route in Maps öffnen",
+  "searchHint": "Orte, Städte, Touren suchen",
+  "language": "Sprache",
+  "retry": "Wiederholen",
+  "noInternet": "Keine Internetverbindung"
+}
+

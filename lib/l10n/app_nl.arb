@@ -1,0 +1,20 @@
+{
+  "@@locale": "nl",
+  "appName": "Hena Masr",
+  "explore": "Ontdekken",
+  "map": "Kaart",
+  "trips": "Reizen",
+  "saved": "Opgeslagen",
+  "profile": "Profiel",
+  "gettingThere": "Hoe kom je er",
+  "scamShield": "Oplichtingsschild",
+  "fairPrice": "Eerlijke prijs",
+  "addToTrip": "Toevoegen aan reis",
+  "downloadOffline": "Offline downloaden",
+  "openInMaps": "Route openen in Maps",
+  "searchHint": "Zoek plaatsen, steden, tours",
+  "language": "Taal",
+  "retry": "Opnieuw proberen",
+  "noInternet": "Geen internetverbinding"
+}
+

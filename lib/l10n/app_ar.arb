@@ -1,0 +1,19 @@
+{
+  "@@locale": "ar",
+  "appName": "هنا مصر",
+  "explore": "استكشف",
+  "map": "الخريطة",
+  "trips": "رحلاتي",
+  "saved": "المحفوظات",
+  "profile": "حسابي",
+  "gettingThere": "طرق الوصول",
+  "scamShield": "درع النصب",
+  "fairPrice": "السعر العادل",
+  "addToTrip": "أضف للرحلة",
+  "downloadOffline": "تحميل أوفلاين",
+  "openInMaps": "افتح المسار في الخرائط",
+  "searchHint": "ابحث عن أماكن أو مدن أو جولات",
+  "language": "اللغة",
+  "retry": "إعادة المحاولة",
+  "noInternet": "لا يوجد اتصال بالإنترنت"
+}

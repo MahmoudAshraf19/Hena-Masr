@@ -1,0 +1,20 @@
+{
+  "@@locale": "ru",
+  "appName": "Hena Masr",
+  "explore": "Обзор",
+  "map": "Карта",
+  "trips": "Поездки",
+  "saved": "Сохраненное",
+  "profile": "Профиль",
+  "gettingThere": "Как добраться",
+  "scamShield": "Защита от мошенников",
+  "fairPrice": "Справедливая цена",
+  "addToTrip": "Добавить в поездку",
+  "downloadOffline": "Скачать офлайн",
+  "openInMaps": "Открыть маршрут на картах",
+  "searchHint": "Поиск мест, городов, туров",
+  "language": "Язык",
+  "retry": "Повторить попытку",
+  "noInternet": "Нет подключения к интернету"
+}
+

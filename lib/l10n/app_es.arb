@@ -1,0 +1,20 @@
+{
+  "@@locale": "es",
+  "appName": "Hena Masr",
+  "explore": "Explorar",
+  "map": "Mapa",
+  "trips": "Viajes",
+  "saved": "Guardados",
+  "profile": "Perfil",
+  "gettingThere": "Cómo llegar",
+  "scamShield": "Protección contra estafas",
+  "fairPrice": "Precio justo",
+  "addToTrip": "Añadir al viaje",
+  "downloadOffline": "Descargar sin conexión",
+  "openInMaps": "Abrir ruta en Maps",
+  "searchHint": "Buscar lugares, ciudades, tours",
+  "language": "Idioma",
+  "retry": "Reintentar",
+  "noInternet": "Sin conexión a internet"
+}
+

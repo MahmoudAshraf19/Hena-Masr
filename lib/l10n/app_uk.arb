@@ -1,0 +1,20 @@
+{
+  "@@locale": "uk",
+  "appName": "Hena Masr",
+  "explore": "Дослідити",
+  "map": "Карта",
+  "trips": "Подорожі",
+  "saved": "Збережене",
+  "profile": "Профіль",
+  "gettingThere": "Як дістатися",
+  "scamShield": "Захист від шахраїв",
+  "fairPrice": "Справедлива ціна",
+  "addToTrip": "Додати до подорожі",
+  "downloadOffline": "Завантажити офлайн",
+  "openInMaps": "Відкрити маршрут на карті",
+  "searchHint": "Пошук місць, міст, турів",
+  "language": "Мова",
+  "retry": "Повторити",
+  "noInternet": "Немає підключення до інтернету"
+}
+

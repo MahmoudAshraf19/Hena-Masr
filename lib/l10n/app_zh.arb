@@ -1,0 +1,20 @@
+{
+  "@@locale": "zh",
+  "appName": "Hena Masr",
+  "explore": "探索",
+  "map": "地图",
+  "trips": "行程",
+  "saved": "已保存",
+  "profile": "个人中心",
+  "gettingThere": "路线指引",
+  "scamShield": "防骗指南",
+  "fairPrice": "公道价格",
+  "addToTrip": "添加到行程",
+  "downloadOffline": "离线下载",
+  "openInMaps": "在地图中打开路线",
+  "searchHint": "搜索地点、城市、行程",
+  "language": "语言",
+  "retry": "重试",
+  "noInternet": "无网络连接"
+}
+

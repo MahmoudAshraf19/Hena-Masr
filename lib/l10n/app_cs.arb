@@ -1,0 +1,20 @@
+{
+  "@@locale": "cs",
+  "appName": "Hena Masr",
+  "explore": "Objevovat",
+  "map": "Mapa",
+  "trips": "Cesty",
+  "saved": "Uložené",
+  "profile": "Profil",
+  "gettingThere": "Jak se tam dostat",
+  "scamShield": "Ochrana před podvody",
+  "fairPrice": "Férová cena",
+  "addToTrip": "Přidat do cesty",
+  "downloadOffline": "Stáhnout offline",
+  "openInMaps": "Otevřít trasu v Mapách",
+  "searchHint": "Hledat místa, města, výlety",
+  "language": "Jazyk",
+  "retry": "Zkusit znovu",
+  "noInternet": "Žádné připojení k internetu"
+}
+

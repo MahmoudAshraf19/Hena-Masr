@@ -1,0 +1,20 @@
+{
+  "@@locale": "sr",
+  "appName": "Hena Masr",
+  "explore": "Истражи",
+  "map": "Мапа",
+  "trips": "Путовања",
+  "saved": "Сачувано",
+  "profile": "Профил",
+  "gettingThere": "Како стићи",
+  "scamShield": "Заштита од превара",
+  "fairPrice": "Поштена цена",
+  "addToTrip": "Додај у путовање",
+  "downloadOffline": "Преузми офлајн",
+  "openInMaps": "Отвори руту на мапи",
+  "searchHint": "Претражите места, градове, туре",
+  "language": "Језик",
+  "retry": "Покушај поново",
+  "noInternet": "Нема интернет везе"
+}
+

@@ -1,0 +1,20 @@
+{
+  "@@locale": "tr",
+  "appName": "Hena Masr",
+  "explore": "Keşfet",
+  "map": "Harita",
+  "trips": "Gezilerim",
+  "saved": "Kaydedilenler",
+  "profile": "Profil",
+  "gettingThere": "Nasıl gidilir",
+  "scamShield": "Dolandırıcılık kalkanı",
+  "fairPrice": "Adil fiyat",
+  "addToTrip": "Geziye ekle",
+  "downloadOffline": "Çevrimdışı indir",
+  "openInMaps": "Rotayı Haritalar'da aç",
+  "searchHint": "Mekan, şehir, tur ara",
+  "language": "Dil",
+  "retry": "Tekrar dene",
+  "noInternet": "İnternet bağlantısı yok"
+}
+

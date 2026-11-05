@@ -1,0 +1,20 @@
+{
+  "@@locale": "ja",
+  "appName": "Hena Masr",
+  "explore": "探索",
+  "map": "地図",
+  "trips": "マイトリップ",
+  "saved": "保存済み",
+  "profile": "プロフィール",
+  "gettingThere": "アクセス",
+  "scamShield": "防犯・ぼったくり対策",
+  "fairPrice": "適正価格",
+  "addToTrip": "旅行に追加",
+  "downloadOffline": "オフライン保存",
+  "openInMaps": "マップでルートを開く",
+  "searchHint": "場所、都市、ツアーを検索",
+  "language": "言語",
+  "retry": "再試行",
+  "noInternet": "インターネット接続がありません"
+}
+
