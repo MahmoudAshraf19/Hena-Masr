@@ -13,11 +13,11 @@ Future<void> main() async {
   GoogleFonts.config.allowRuntimeFetching = false;
 
   final themeController = await ThemeController.load();
-  runApp(HenaMasrApp(themeController: themeController));
+  runApp(HanaMasrApp(themeController: themeController));
 }
 
-class HenaMasrApp extends StatelessWidget {
-  const HenaMasrApp({super.key, required this.themeController});
+class HanaMasrApp extends StatelessWidget {
+  const HanaMasrApp({super.key, required this.themeController});
 
   final ThemeController themeController;
 

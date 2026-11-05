@@ -1,8 +1,8 @@
-# Hena Masr (هنا مصر)
+# Hana Masr (هنا مصر)
 
 > The complete tourist companion for Egypt — every famous place explained in full, with every way to get there, available offline and in 15 languages.
 
-Hena Masr helps visitors see Egypt's top destinations with confidence: what to see inside each site, how much to pay, how to get there, and what to watch out for.
+Hana Masr helps visitors see Egypt's top destinations with confidence: what to see inside each site, how much to pay, how to get there, and what to watch out for.
 
 ---
 
