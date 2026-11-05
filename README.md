@@ -69,6 +69,13 @@ Every architectural layer adheres to strict **Clean Architecture** and **SOLID**
 * Native OS launch screens across Android (`launch_background`), iOS (`LaunchScreen.storyboard`), and Web (`index.html`).
 * In-engine 3D spinning **Ankh (Key of Life)** loader powered by vector `CustomPaint` with mathematical perspective projection and glowing gold shaders.
 
+### 6. 🧭 Autonomous Offline Zone Resolution Engine
+* **27 Real Governorates (Natural Earth GIS)**: Point-in-polygon ray-casting with axis-aligned bounding box (AABB) spatial indexing.
+* **62 Curated Tourist Zones**: Hand-verified landmark circles with priority-weighting (e.g. GEM over plateau circle).
+* **Smart Boundary Hysteresis**: Eliminates location jitter when traversing governorate and tourist perimeter boundaries.
+* **Coastline & Maritime Tolerance**: Up to 25km boundary-snapping with confidence ratings (`high`, `medium`, `low`).
+* **Dual Resolution Modes**: Background GPS tracking with zero-latency manual override and persistent preference caching.
+
 ---
 
 ## 🏗️ Architecture & Engineering Blueprint

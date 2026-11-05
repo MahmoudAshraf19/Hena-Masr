@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/constants/asset_paths.dart';
+import 'core/di/providers.dart';
 import 'core/localization/supported_locales.dart';
 import 'core/theme/theme.dart';
 import 'features/splash/presentation/screens/splash_screen.dart';
+import 'features/zones/domain/entities/zone.dart';
+import 'features/zones/presentation/providers/zone_providers.dart';
+import 'features/zones/presentation/widgets/zone_confirmation_banner.dart';
+import 'features/zones/presentation/widgets/zone_selector_pill.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,7 +21,16 @@ Future<void> main() async {
   GoogleFonts.config.allowRuntimeFetching = false;
 
   final themeController = await ThemeController.load();
-  runApp(HanaMasrApp(themeController: themeController));
+  final prefs = await SharedPreferences.getInstance();
+
+  runApp(
+    ProviderScope(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+      ],
+      child: HanaMasrApp(themeController: themeController),
+    ),
+  );
 }
 
 class HanaMasrApp extends StatelessWidget {
@@ -76,11 +92,22 @@ class _AppRootState extends State<_AppRoot> {
   }
 }
 
-class _DemoScreen extends StatelessWidget {
+class _DemoScreen extends ConsumerWidget {
   const _DemoScreen();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final zoneState = ref.watch(currentZoneProvider).valueOrNull;
+    final match = zoneState?.match;
+
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+    final currentZoneName = match != null
+        ? (isArabic ? match.nameAr : match.nameEn)
+        : (isArabic ? 'أهرامات الجيزة' : 'Giza Pyramids');
+    final currentGovName = match != null
+        ? (isArabic ? match.governorate.nameAr : match.governorate.nameEn)
+        : (isArabic ? 'الجيزة' : 'Giza');
+
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -91,11 +118,12 @@ class _DemoScreen extends StatelessWidget {
               height: 32,
               width: 32,
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             const Text('هنا مصر'),
           ],
         ),
         actions: [
+          const ZoneSelectorPill(),
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             tooltip: 'إعادة تشغيل Splash Screen',
@@ -112,31 +140,126 @@ class _DemoScreen extends StatelessWidget {
               );
             },
           ),
+          const SizedBox(width: 4),
         ],
       ),
       body: ListView(
         padding: AppSpacing.screen,
         children: [
+          const SizedBox(height: 12),
+
+          // Border/Accuracy Confirmation Banner (Conditional)
+          const ZoneConfirmationBanner(),
+
+          // Hero Zone Feature Card
           Card(
             color: context.hena.heroSurface,
+            elevation: 2,
             child: Padding(
               padding: const EdgeInsets.all(AppSpacing.xl),
-              child: Text(
-                'أهرامات الجيزة',
-                style: context.text.headlineMedium
-                    ?.copyWith(color: context.hena.onHeroSurface),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: context.hena.onHeroSurface.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          currentGovName,
+                          style: context.text.labelMedium?.copyWith(
+                            color: context.hena.onHeroSurface,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
+                      Icon(
+                        zoneState?.source == ZoneSource.manual
+                            ? Icons.edit_location_rounded
+                            : Icons.my_location_rounded,
+                        color: context.hena.onHeroSurface.withValues(alpha: 0.7),
+                        size: 18,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    currentZoneName,
+                    style: context.text.headlineMedium?.copyWith(
+                      color: context.hena.onHeroSurface,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    isArabic
+                        ? 'دليلك الشامل لزيارة المعالم وأسعار المواصلات العادلة'
+                        : 'Your complete guide for landmarks and fair transit pricing',
+                    style: context.text.bodyMedium?.copyWith(
+                      color: context.hena.onHeroSurface.withValues(alpha: 0.85),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
-          FilledButton(onPressed: () {}, child: const Text('أضف للرحلة')),
+          FilledButton.icon(
+            onPressed: () {},
+            icon: const Icon(Icons.add_rounded),
+            label: Text(isArabic ? 'أضف للرحلة' : 'Add to Trip'),
+          ),
           const SizedBox(height: AppSpacing.md),
-          OutlinedButton(onPressed: () {}, child: const Text('تحميل أوفلاين')),
+          OutlinedButton.icon(
+            onPressed: () {},
+            icon: const Icon(Icons.download_rounded),
+            label: Text(
+              isArabic
+                  ? 'تحميل خريطة $currentGovName أوفلاين'
+                  : 'Download $currentGovName Offline Pack',
+            ),
+          ),
           const SizedBox(height: AppSpacing.lg),
-          Text(
-            'درع النصب',
-            style: context.text.titleMedium
-                ?.copyWith(color: context.hena.carnelianText),
+          Row(
+            children: [
+              Icon(Icons.shield_outlined, color: context.hena.carnelianText, size: 22),
+              const SizedBox(width: 8),
+              Text(
+                isArabic ? 'درع النصب والأسعار العادلة' : 'Scam Shield & Fair Prices',
+                style: context.text.titleMedium?.copyWith(
+                  color: context.hena.carnelianText,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Card(
+            color: context.colors.surfaceContainerHighest.withValues(alpha: 0.4),
+            child: ListTile(
+              leading: Icon(Icons.local_taxi_rounded, color: context.hena.gold),
+              title: Text(
+                isArabic ? 'أجرة التاكسي / أوبر المعتمدة' : 'Fair Taxi / Ride Fare',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text(
+                isArabic
+                    ? 'متوسط السعر العادل في $currentZoneName'
+                    : 'Average fair price in $currentZoneName',
+              ),
+              trailing: Text(
+                '40 - 70 EGP',
+                style: TextStyle(
+                  color: context.hena.gold,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+              ),
+            ),
           ),
         ],
       ),
