@@ -26,6 +26,7 @@ Hana Masr helps visitors see Egypt's top destinations with confidence: what to s
 ## Features
 
 ### Core (MVP)
+- **Native & Animated Splash Screen**: Immersive full-bleed Pyramids artwork launch screen (Android `launch_background`, iOS `LaunchScreen.storyboard`, and Web) with custom Egyptian Ankh 3D loading animation (`AnkhLoader`) and golden progress indicator.
 - Onboarding and language selection
 - Explore by city and category (ancient sites, beaches, religious, nature, food)
 - Search and filters

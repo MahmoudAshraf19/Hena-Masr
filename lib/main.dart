@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'core/constants/asset_paths.dart';
 import 'core/localization/supported_locales.dart';
 import 'core/theme/theme.dart';
+import 'features/splash/presentation/screens/splash_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,10 +43,36 @@ class HanaMasrApp extends StatelessWidget {
           theme: AppTheme.light(locale),
           darkTheme: AppTheme.dark(locale),
           themeMode: themeController.mode,
-          home: const _DemoScreen(),
+          home: const _AppRoot(),
         );
       },
     );
+  }
+}
+
+class _AppRoot extends StatefulWidget {
+  const _AppRoot();
+
+  @override
+  State<_AppRoot> createState() => _AppRootState();
+}
+
+class _AppRootState extends State<_AppRoot> {
+  bool _initialized = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_initialized) {
+      return SplashScreen(
+        onInitialized: () {
+          setState(() {
+            _initialized = true;
+          });
+        },
+      );
+    }
+
+    return const _DemoScreen();
   }
 }
 
@@ -68,6 +95,24 @@ class _DemoScreen extends StatelessWidget {
             const Text('هنا مصر'),
           ],
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            tooltip: 'إعادة تشغيل Splash Screen',
+            onPressed: () {
+              Navigator.of(context).push(
+                PageRouteBuilder(
+                  pageBuilder: (context, anim, secondaryAnim) => SplashScreen(
+                    onInitialized: () => Navigator.of(context).pop(),
+                  ),
+                  transitionsBuilder: (context, anim, secondaryAnim, child) {
+                    return FadeTransition(opacity: anim, child: child);
+                  },
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: ListView(
         padding: AppSpacing.screen,
