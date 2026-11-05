@@ -24,3 +24,16 @@ final class NotFoundFailure extends Failure {
 final class UnknownFailure extends Failure {
   const UnknownFailure([super.message = 'Something went wrong']);
 }
+
+enum LocationIssue {
+  serviceDisabled,
+  permissionDenied,
+  permissionDeniedForever,
+  timeout,
+  unknown,
+}
+
+final class LocationFailure extends Failure {
+  const LocationFailure(this.issue, [super.message = 'Location unavailable']);
+  final LocationIssue issue;
+}
