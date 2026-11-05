@@ -2,8 +2,84 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if false;
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && request.auth.token.admin == true;
+    }
+
+    // --- Public Reference Collections (Read for everyone, write for Admins) ---
+    match /cities/{cityId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /places/{placeId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /transport_options/{transportId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /scam_tips/{tipId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /offline_packs/{packId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /emergency_contacts/{contactId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /phrases/{phraseId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // --- User-Specific Private Data ---
+    match /users/{userId} {
+      // User can read and manage their own profile
+      allow read, write: if isOwner(userId);
+
+      // User favorites subcollection
+      match /favorites/{favoriteId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // User trips subcollection
+      match /trips/{tripId} {
+        allow read, write: if isOwner(userId);
+
+        match /days/{dayId} {
+          allow read, write: if isOwner(userId);
+        }
+      }
+
+      // User AI chats subcollection
+      match /ai_chats/{chatId} {
+        allow read, write: if isOwner(userId);
+      }
     }
   }
 }
