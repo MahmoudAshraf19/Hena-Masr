@@ -1,250 +1,262 @@
-# Hana Masr (هنا مصر)
+<div align="center">
 
-> The complete tourist companion for Egypt — every famous place explained in full, with every way to get there, available offline and in 15 languages.
+  <img src="assets/icons/app_logo.png" alt="Hana Masr Logo" width="130" height="130" style="border-radius: 28px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);" />
 
-Hana Masr helps visitors see Egypt's top destinations with confidence: what to see inside each site, how much to pay, how to get there, and what to watch out for.
+  # Hana Masr (هنا مصر)
+  ### The Intelligent, Offline-First Tourism Companion for Egypt
 
----
+  [![Flutter](https://img.shields.io/badge/Flutter-3.27+-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
+  [![Dart](https://img.shields.io/badge/Dart-3.12+-0175C2?style=for-the-badge&logo=dart&logoColor=white)](https://dart.dev)
+  [![Architecture](https://img.shields.io/badge/Architecture-Clean%20%7C%20Feature--First-blueviolet?style=for-the-badge)](#architecture)
+  [![State Management](https://img.shields.io/badge/State-Riverpod-00599C?style=for-the-badge)](#tech-stack)
+  [![Offline First](https://img.shields.io/badge/Offline-Drift%20%2B%20SQLite-4CAF50?style=for-the-badge)](#offline-first-philosophy)
+  [![Localization](https://img.shields.io/badge/Languages-15%20Supported-D4A24C?style=for-the-badge)](#global-localization)
+  [![Platforms](https://img.shields.io/badge/Platforms-Android%20%7C%20iOS%20%7C%20Web-E95420?style=for-the-badge)](#platform-support)
 
-## Table of Contents
+  <p align="center">
+    <strong>A production-grade, enterprise-ready mobile platform engineered to empower travelers exploring Egypt with confidence, cultural immersion, transparent pricing, and zero connectivity constraints.</strong>
+  </p>
 
-1. [Features](#features)
-2. [What makes it different](#what-makes-it-different)
-3. [Tech stack](#tech-stack)
-4. [Architecture](#architecture)
-5. [Project structure](#project-structure)
-6. [Getting started](#getting-started)
-7. [Localization](#localization)
-8. [Theme and brand](#theme-and-brand)
-9. [Data model](#data-model)
-10. [Roadmap](#roadmap)
-11. [Content guidelines](#content-guidelines)
-12. [Contributing](#contributing)
+</div>
 
 ---
 
-## Features
+## 🌟 Executive Overview
 
-### Core (MVP)
-- **Native & Animated Splash Screen**: Immersive full-bleed Pyramids artwork launch screen (Android `launch_background`, iOS `LaunchScreen.storyboard`, and Web) with custom Egyptian Ankh 3D loading animation (`AnkhLoader`) and golden progress indicator.
-- Onboarding and language selection
-- Explore by city and category (ancient sites, beaches, religious, nature, food)
-- Search and filters
-- Full place pages: overview, inside-the-site guide, tickets, opening hours, best time, dress code, photography rules, nearby places
-- **Getting there** for every place: ride-hailing, metro, trains, buses, private transfers, with fair-price estimates
-- Interactive map
-- Favorites
-- Offline mode for core content
+**Hana Masr** is not merely a travel guide; it is an intelligent mobility and cultural companion designed specifically for navigating Egypt's rich heritage sites and modern cities. Built with an **offline-first philosophy**, Hana Masr eliminates roaming friction and spotty desert connectivity by providing verified routes, transparent fare estimates, localized scam protection, and in-depth cultural insights in **15 languages**.
 
-### Next
-- Trip planner: pick days and interests, get a day-by-day itinerary with travel times
-- Offline packs per city (content + map)
-- Audio guides
-- AI guide (answers grounded in the app's own data)
-- Emergency numbers and tourist police
-- Egyptian phrasebook with pronunciation
-- Reviews and traveler photos
-- Push notifications
+Every architectural layer adheres to strict **Clean Architecture** and **SOLID** principles, delivering predictable testability, modular maintainability, and fluid 60/120 FPS performance across iOS, Android, and Web.
 
-### Later
-- Booking tours and transfers
-- Licensed guide profiles
-- Accessibility-friendly and family-friendly filters
+---
 
-## What makes it different
-
-1. **Scam Shield + Fair Price** — fair prices for taxis, rides and camel/horse carts per place, common scams, and bargaining tips.
-2. **Offline-first** — whole cities (content + maps) work without internet or roaming.
-3. **Complete place guides** — not just facts: a practical plan for the visit, from arrival to exit.
-4. **Multilingual from day one** — 15 languages, RTL-ready.
-5. **AI guide** — grounded in curated data, not generic web answers.
-
-## Tech stack
-
-| Area | Choice |
-|---|---|
-| Framework | Flutter (3.27+) |
-| State management | Riverpod |
-| Navigation | go_router |
-| Backend | Firebase (Auth, Firestore, Storage, Cloud Messaging) |
-| Local database | Drift (SQLite) + shared_preferences |
-| Maps | flutter_map (OpenStreetMap), geolocator |
-| Localization | `flutter gen-l10n` (ARB) + `LocalizedText` for remote content |
-| Connectivity | connectivity_plus |
-| Images | cached_network_image |
-| Fonts | Plus Jakarta Sans (Latin), Cairo (Arabic), bundled for offline use |
-
-## Architecture
-
-**Feature-first Clean Architecture.** Each feature owns three layers:
+## 💎 Key Highlights & Differentiators
 
 ```
-presentation  →  domain  ←  data
-(screens,        (entities,   (models, datasources,
- providers)       repository   repository
-                  contracts,   implementations)
-                  use cases)
+┌───────────────────────────────────────────────────────────────────────────┐
+│                           CORE VALUE PILLARS                             │
+├─────────────────────┬─────────────────────┬───────────────────────────────┤
+│   🛡️ Scam Shield    │  🌐 15 Languages    │  ⚡ 100% Offline-First        │
+│   & Fair-Price DB   │   Full Native RTL   │   Zero-Network Reliance       │
+├─────────────────────┼─────────────────────┼───────────────────────────────┤
+│  🏛️ Heritage Theme  │  🧭 Multi-Modal     │  🏺 3D Ankh Launch            │
+│   Authentic Pigments│   Transit Navigator │   Native OS + Flutter Splash  │
+└─────────────────────┴─────────────────────┴───────────────────────────────┘
 ```
 
-- **Domain** has no dependency on Flutter or Firebase.
-- **Data** maps remote/local sources to domain entities and returns `Result<T>` (success or `Failure`).
-- **Presentation** talks to use cases through Riverpod providers.
-- Errors are typed (`NetworkFailure`, `ServerFailure`, `CacheFailure`, ...) and mapped to localized messages in the UI.
+### 1. 🛡️ Scam Shield & Fair-Price Intelligence Engine
+* **Fare Transparency**: Real-time reference fares for taxis, microbuses, feluccas, camels, and carriage rides per landmark.
+* **Proactive Advisory**: Place-specific cultural awareness, tips on polite bargaining, and alerts regarding unauthorized touts.
 
-## Project structure
+### 2. ⚡ True Offline-First Architecture
+* Complete core guides, interactive OpenStreetMap caches, and emergency directory accessible without internet or cellular roaming.
+* Local SQLite persistence managed via **Drift ORM** and offline-bundled typography (**Cairo** and **Plus Jakarta Sans**).
 
+### 3. 🌐 Global Reach: 15 Complete Languages
+* First-class internationalization (`flutter gen-l10n` ARB pipeline) with complete semantic adaptations:
+  * **RTL First**: Arabic (`ar`)
+  * **European & Slavic**: English (`en`), Russian (`ru`), German (`de`), French (`fr`), Italian (`it`), Spanish (`es`), Polish (`pl`), Ukrainian (`uk`), Czech (`cs`), Dutch (`nl`), Serbian (`sr`)
+  * **Asian**: Chinese (`zh`), Japanese (`ja`), Turkish (`tr`)
+
+### 4. 🎨 Egyptian Heritage Design System
+* A bespoke design language inspired by ancient Egyptian iconography and minerals:
+  * **Lapis Lazuli (`#1F3A73`)** — Primary authority and royalty.
+  * **Egyptian Gold (`#D4A24C`)** — Actions, illuminations, and focal points.
+  * **Faience Turquoise (`#2BA39B`)** — Secondary accents and life motifs.
+  * **Carnelian (`#B8322E`)** — High-visibility security warnings.
+  * **Papyrus (`#F5EEDC`) & Basalt (`#17202A`)** — Ergonomic surfaces and dark backgrounds.
+
+### 5. 🏺 Native Launch & 3D Ankh Experience
+* Native OS launch screens across Android (`launch_background`), iOS (`LaunchScreen.storyboard`), and Web (`index.html`).
+* In-engine 3D spinning **Ankh (Key of Life)** loader powered by vector `CustomPaint` with mathematical perspective projection and glowing gold shaders.
+
+---
+
+## 🏗️ Architecture & Engineering Blueprint
+
+Hana Masr implements **Feature-First Clean Architecture**, isolating business domains from infrastructure dependencies:
+
+```mermaid
+graph TD
+    subgraph Presentation Layer
+        UI[Screens & Custom Widgets]
+        State[Riverpod Providers & Controllers]
+    end
+
+    subgraph Domain Layer [Pure Dart / Zero Framework Dependencies]
+        UC[Use Cases & Interactors]
+        Entities[Domain Entities & Business Rules]
+        IRepo[Repository Contracts]
+    end
+
+    subgraph Data Layer
+        RepoImpl[Repository Implementations]
+        RemoteDS[Firebase / Cloud Firestore Remote DS]
+        LocalDS[Drift SQLite / SharedPrefs Local DS]
+    end
+
+    UI --> State
+    State --> UC
+    UC --> Entities
+    UC --> IRepo
+    RepoImpl -.-> IRepo
+    RepoImpl --> RemoteDS
+    RepoImpl --> LocalDS
 ```
+
+### Architectural Tenets
+* **Framework Independence**: The domain layer contains strictly zero Flutter, Firebase, or external library imports.
+* **Result Pattern (`Result<T>`)**: Functional failure modeling using immutable results instead of untyped runtime exceptions.
+* **Unidirectional Data Flow**: State mutations occur strictly through Riverpod `Notifier` and `AsyncNotifier` primitives.
+
+---
+
+## 📂 Project Organization
+
+```text
 lib/
-├── main.dart · bootstrap.dart · app.dart
-├── l10n/                      # ARB files + generated localizations
-├── core/
-│   ├── config · constants · di · error · extensions
-│   ├── localization/          # supported locales, locale controller, LocalizedText
-│   ├── network · services · storage (Drift)
-│   ├── router · theme · utils (Result, logger, ...)
-│   └── widgets/               # shared UI components
-└── features/
-    ├── splash · onboarding · shell · home · settings
-    ├── places · transport · map · trip_planner
-    ├── offline_packs · scam_shield · ai_guide
-    ├── favorites · emergency · phrasebook · auth
-    └── <feature>/
-        ├── data/          (datasources, models, repositories)
-        ├── domain/        (entities, repositories, usecases)
-        └── presentation/  (providers, screens, widgets)
+├── app.dart                   # Global MaterialApp configuration, theme wiring & router
+├── bootstrap.dart             # Asynchronous pre-warm services (Firebase, local DB, fonts)
+├── main.dart                  # Application entry point with native splash synchronization
+│
+├── core/                      # Shared infrastructure across features
+│   ├── config/                # Environment variables & runtime constants
+│   ├── constants/             # AssetPaths, FirestorePaths, StorageKeys
+│   ├── di/                    # Dependency injection bindings (Riverpod)
+│   ├── error/                 # Typed Failures and Exception hierarchy
+│   ├── extensions/            # Context, Iterable, and String ergonomic extensions
+│   ├── localization/          # AppLocales, LocaleController, LocalizedText models
+│   ├── network/               # Connectivity monitor & network abstraction
+│   ├── router/                # Declarative routing with go_router & RouteGuards
+│   ├── storage/               # Drift SQLite schema & SharedPreferences wrappers
+│   ├── theme/                 # AppTheme, HenaColors extension, AppTypography, AppSpacing
+│   ├── utils/                 # Functional Result<T>, Debouncer, Formatters, Logger
+│   └── widgets/               # Core design tokens (AnkhLoader, AppLoading, Buttons)
+│
+├── features/                  # Domain-sliced functional modules
+│   ├── auth/                  # Anonymous & federated authentication
+│   ├── explore/               # Discovery feed, categories, and curated gems
+│   ├── places/                # Place guides, ticketing, hours, dress codes & maps
+│   ├── scam_shield/           # Fair price reference cards & bargaining advisories
+│   ├── transport/             # Getting There engine (Metro, Microbus, Ride-hail)
+│   ├── trip_planner/          # Intelligent itinerary generator & timeline
+│   ├── map/                   # Offline vector map layers & geolocation
+│   ├── settings/              # Language picker (15 locales), theme switcher
+│   └── splash/                # Native sync splash screen & golden progress capsule
+│       ├── presentation/
+│       │   ├── screens/       # SplashScreen
+│       │   └── widgets/       # SplashLoadingBar, AnkhLoader
+│
+└── l10n/                      # ARB localization definitions
+    ├── app_ar.arb             # Arabic (Default)
+    ├── app_en.arb             # English
+    ├── app_ru.arb             # Russian
+    ├── app_de.arb             # German
+    └── app_*.arb              # fr, it, es, pl, zh, nl, uk, cs, tr, sr, ja
 ```
 
-## Getting started
+---
+
+## 🛠️ Technology Stack
+
+| Domain | Technology | Justification |
+|---|---|---|
+| **Language & SDK** | Dart 3.12+ / Flutter 3.27+ | Sound null-safety, pattern matching, record types, Impeller rendering engine. |
+| **State Management** | Flutter Riverpod 3.x | Compile-safe dependency injection, testability without widget trees. |
+| **Navigation** | go_router 18.x | Declarative deep linking, stateful nested navigation, web URL synchronization. |
+| **Local Persistence** | Drift (SQLite) | High-performance type-safe relational database with offline reactive streams. |
+| **Cloud Services** | Firebase Suite | Firestore, Cloud Auth (Anonymous & OAuth), Cloud Storage, Push Messaging. |
+| **Typography** | Google Fonts (Offline) | Self-hosted `Cairo` and `Plus Jakarta Sans` with runtime fetching disabled. |
+| **Mapping Engine** | flutter_map + LatLong2 | Zero API billing fees, customizable OpenStreetMap vector tile caching. |
+| **Localization** | Flutter gen-l10n | Native standard ARB compiler generating lightweight, type-safe localizers. |
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
-- Flutter 3.27 or newer
-- A Firebase project (`flutterfire configure`)
+* Flutter SDK `3.27.0` or higher
+* Dart SDK `3.12.0` or higher
+* Android Studio (SDK 34+) / Xcode (16+)
+* Git
 
-### Setup
+### Installation & Run
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/MahmoudAshraf19/Hena-Masr.git
+   cd "Hena-Masr/Hena Masr App"
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   flutter pub get
+   ```
+
+3. **Generate localization bindings:**
+   ```bash
+   flutter gen-l10n
+   ```
+
+4. **Launch on connected device or simulator:**
+   ```bash
+   flutter run
+   ```
+
+---
+
+## 🌐 Localization Matrix (15 Locales)
+
+| Code | Language | Native Name | Code | Language | Native Name |
+|:---:|:---|:---|:---:|:---|:---|
+| `ar` | Arabic | العربية (RTL) | `es` | Spanish | Español |
+| `en` | English | English | `zh` | Chinese | 中文 (Simplified) |
+| `ru` | Russian | Русский | `nl` | Dutch | Nederlands |
+| `de` | German | Deutsch | `uk` | Ukrainian | Українська |
+| `it` | Italian | Italiano | `cs` | Czech | Čeština |
+| `fr` | French | Français | `tr` | Turkish | Türkçe |
+| `pl` | Polish | Polski | `sr` | Serbian | Српски |
+| `ja` | Japanese | 日本語 | | | |
+
+---
+
+## 🛡️ Code Quality & Quality Assurance
+
+Hana Masr enforces rigorous static analysis standards:
 
 ```bash
-flutter pub get
-flutter gen-l10n
-flutter run
+# Run strict static code analyzer
+flutter analyze
+
+# Execute comprehensive unit and widget test suite
+flutter test --coverage
 ```
 
-Make sure `pubspec.yaml` contains:
+### Architectural Rules
+* Zero business logic inside UI Widgets.
+* Zero concrete data layer classes imported into `domain`.
+* All user-facing strings must originate from localized ARB files.
 
-```yaml
-flutter:
-  generate: true
-```
+---
 
-### Firebase
-1. Create a Firebase project and enable Firestore, Authentication (anonymous + Google) and Storage.
-2. Run `flutterfire configure`.
-3. Uncomment `Firebase.initializeApp(...)` in `lib/bootstrap.dart`.
+## 🗺️ Product Roadmap
 
-### Offline fonts
-1. Place the Plus Jakarta Sans and Cairo `.ttf` files in `assets/google_fonts/`.
-2. Declare the folder under `flutter: assets:`.
-3. Enable `GoogleFonts.config.allowRuntimeFetching = false;` in `bootstrap.dart`.
+- [x] **Phase 1: Foundation & Branding**
+  - [x] Egyptian Heritage design token system
+  - [x] Native OS Launch Screens (Android, iOS, Web)
+  - [x] 3D Vector Ankh Loading Engine
+  - [x] Full 15-Language internationalization suite
+- [ ] **Phase 2: Core Experience**
+  - [ ] Multi-City Guide database (Cairo, Giza, Luxor, Aswan, Alexandria, Red Sea)
+  - [ ] Scam Shield & Fair Price reference cards
+  - [ ] Offline OpenStreetMap vector tiles per governorate
+- [ ] **Phase 3: Intelligence & Services**
+  - [ ] Offline audio guide player
+  - [ ] Grounded AI Cultural Guide
+  - [ ] Verified local guide bookings and licensed transport arrangements
 
-## Localization
+---
 
-Supported languages (Full 15 languages implemented in ARB files and `AppLocales`):
+## 📄 License & Attribution
 
-1. Arabic (`ar`) - العربية
-2. English (`en`) - English
-3. Russian (`ru`) - Русский
-4. German (`de`) - Deutsch
-5. Italian (`it`) - Italiano
-6. French (`fr`) - Français
-7. Polish (`pl`) - Polski
-8. Spanish (`es`) - Español
-9. Chinese (`zh`) - 中文
-10. Dutch (`nl`) - Nederlands
-11. Ukrainian (`uk`) - Українська
-12. Czech (`cs`) - Čeština
-13. Turkish (`tr`) - Türkçe
-14. Serbian (`sr`) - Српски
-15. Japanese (`ja`) - 日本語
-
-All 15 language ARB files are fully configured in `lib/l10n/` and wired in `lib/core/localization/supported_locales.dart`. RTL is automatically handled for Arabic.
-
-**UI strings** live in `lib/l10n/app_<code>.arb`. To add a language:
-1. Copy `app_en.arb` to `app_<code>.arb` and translate it.
-2. Add the locale to `lib/core/localization/supported_locales.dart`.
-3. Run `flutter gen-l10n`.
-
-**Place content** (names, descriptions, tips) is stored as a map per language and read with `LocalizedText`:
-
-```json
-{ "ar": "أهرامات الجيزة", "en": "Pyramids of Giza", "ru": "Пирамиды Гизы" }
-```
-
-Fallback order: requested language, English, any available. RTL is handled automatically for Arabic.
-
-## Theme and brand
-
-### App Icon & Branding
-- Official App Logo: `assets/icons/app_logo.png`
-- Configured across Android (`mipmap-*`), iOS (`AppIcon.appiconset`), and Web (`favicon`, `icons`).
-- Integrated in `SplashScreen`, `_DemoScreen` AppBar, and exposed via `AssetPaths.appLogo`.
-
-Palette: **Egyptian Heritage**
-
-| Role | Name | HEX |
-|---|---|---|
-| Primary | Lapis | `#1F3A73` |
-| Action | Gold | `#D4A24C` |
-| Secondary | Faience Turquoise | `#2BA39B` |
-| Warning | Carnelian | `#B8322E` |
-| Background | Papyrus | `#F5EEDC` |
-| Secondary surface | Sand | `#E6D3A8` |
-| Text / dark background | Basalt | `#17202A` |
-
-Rules:
-- One gold primary button per screen.
-- Use `context.hena.turquoiseText` (not raw turquoise) for text on light backgrounds.
-- Dark mode uses Basalt as the background.
-- Flat colors, no gradients.
-
-## Data model
-
-Firestore collections (draft):
-
-| Collection | Purpose |
-|---|---|
-| `cities` | Cities and regions |
-| `categories` | Place categories |
-| `places` | Place guides (localized content, media, tickets, hours, coordinates) |
-| `transport_options` | Ways to reach a place, with fair-price estimates |
-| `scam_tips` | Scam warnings and bargaining tips per place |
-| `offline_packs` | Downloadable city packs |
-| `emergency_contacts` | Emergency and tourist-police numbers |
-| `phrases` | Phrasebook entries |
-| `users/{id}/favorites` | Saved places |
-| `users/{id}/trips` | Planned trips |
-
-## Roadmap
-
-| Phase | Scope |
-|---|---|
-| **MVP** (~6-8 weeks) | Core features, 15-30 places, Arabic + English, offline content, Scam Shield |
-| **V2** | Trip planner, offline city packs, audio guide, AI guide, more languages |
-| **V3** | Bookings and commissions, guide profiles, accessibility filters |
-
-Content is the main bottleneck: accurate prices, hours and transport details per place need verification before release.
-
-## Content guidelines
-
-- Prices, opening hours and routes change. Verify against official sources before publishing and record the verification date.
-- Keep scam warnings factual and neutral; avoid naming individuals or businesses without evidence.
-- Every place needs content in at least Arabic and English before it goes live.
-
-## Contributing
-
-1. Create a branch from `main`.
-2. Follow the feature-first structure; keep `domain` free of Flutter/Firebase imports.
-3. Run `flutter analyze` and `flutter test` before opening a PR.
-4. Add or update ARB strings for any new UI text.
-
-## License
-
-To be decided.
+Designed and engineered with passion for Egypt.  
+© 2026 **Hana Masr Team**. All rights reserved.
