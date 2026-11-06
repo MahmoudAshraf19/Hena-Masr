@@ -16,6 +16,7 @@ import 'features/settings/presentation/screens/about_screen.dart';
 import 'features/splash/presentation/screens/splash_screen.dart';
 import 'features/zones/domain/entities/zone.dart';
 import 'features/zones/presentation/providers/zone_providers.dart';
+import 'features/zones/presentation/screens/zone_verification_screen.dart';
 import 'features/zones/presentation/widgets/zone_confirmation_banner.dart';
 import 'features/zones/presentation/widgets/zone_selector_pill.dart';
 
@@ -89,20 +90,34 @@ class _AppRoot extends StatefulWidget {
 }
 
 class _AppRootState extends State<_AppRoot> {
-  bool _initialized = false;
+  bool _splashFinished = false;
+  bool _zoneConfirmed = false;
 
   @override
   Widget build(BuildContext context) {
-    if (!_initialized) {
+    // 1. Pharaonic 3D Splash Screen with background location warmup
+    if (!_splashFinished) {
       return SplashScreen(
         onInitialized: () {
           setState(() {
-            _initialized = true;
+            _splashFinished = true;
           });
         },
       );
     }
 
+    // 2. Zone & Location Verification Screen (GPS coords, assigned zone, and % confidence)
+    if (!_zoneConfirmed) {
+      return ZoneVerificationScreen(
+        onConfirmed: () {
+          setState(() {
+            _zoneConfirmed = true;
+          });
+        },
+      );
+    }
+
+    // 3. Main Application Experience
     return const _DemoScreen();
   }
 }
@@ -229,6 +244,47 @@ class _DemoScreen extends ConsumerWidget {
                         : 'Your complete guide for landmarks and fair transit pricing',
                     style: context.text.bodyMedium?.copyWith(
                       color: context.hena.onHeroSurface.withValues(alpha: 0.85),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Confidence Percentage Badge with Click to Re-verify
+                  InkWell(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => ZoneVerificationScreen(
+                            onConfirmed: () => Navigator.of(context).pop(),
+                          ),
+                        ),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.verified_rounded, size: 16, color: Color(0xFF10B981)),
+                          const SizedBox(width: 6),
+                          Text(
+                            isArabic
+                                ? 'نسبة دقة ومطابقة الزون: ${match?.confidencePercentage ?? 95}% (عرض التفاصيل)'
+                                : 'Zone Accuracy: ${match?.confidencePercentage ?? 95}% (Details)',
+                            style: context.text.labelSmall?.copyWith(
+                              color: context.hena.onHeroSurface,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.chevron_left_rounded, size: 16),
+                        ],
+                      ),
                     ),
                   ),
                 ],

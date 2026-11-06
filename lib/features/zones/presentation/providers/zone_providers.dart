@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 
 import 'package:hena_masr/core/constants/storage_keys.dart';
 import 'package:hena_masr/core/di/providers.dart';
@@ -33,12 +34,14 @@ final class ZoneState {
     this.match,
     this.source = ZoneSource.gps,
     this.issue,
+    this.rawPosition,
   });
 
   final ZoneStatus status;
   final ZoneMatch? match;
   final ZoneSource source;
   final LocationIssue? issue;
+  final Position? rawPosition;
 
   /// UI should show a "Are you in …? / change" prompt.
   bool get shouldConfirm =>
@@ -126,6 +129,7 @@ class CurrentZoneController extends AsyncNotifier<ZoneState> {
           status: ZoneStatus.ready,
           match: match,
           source: ZoneSource.gps,
+          rawPosition: pos,
         ));
       },
       onFailure: (failure) async {

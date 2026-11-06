@@ -176,6 +176,9 @@ final class ZoneMatch {
     this.approximate = false,
     this.nearBorder = false,
     this.outsideZemam = false,
+    this.lat,
+    this.lng,
+    this.accuracyM,
   });
 
   final Governorate governorate;
@@ -200,6 +203,15 @@ final class ZoneMatch {
 
   final bool outsideZemam;
 
+  /// The exact GPS latitude of the resolved point, if available.
+  final double? lat;
+
+  /// The exact GPS longitude of the resolved point, if available.
+  final double? lng;
+
+  /// The GPS accuracy in meters at the time of resolution.
+  final double? accuracyM;
+
   /// The id places should be filtered by (most specific administrative level).
   String get zoneId => district?.id ?? governorate.code;
 
@@ -208,7 +220,59 @@ final class ZoneMatch {
 
   bool get needsConfirmation => confidence == ZoneConfidence.low;
 
-  ZoneMatch copyWith({Locality? locality}) => ZoneMatch(
+  /// Calculated confidence percentage (0% to 100%).
+  int get confidencePercentage {
+    int score = 88;
+    if (highlight != null) {
+      score = 96;
+    } else if (district != null) {
+      score = 92;
+    } else {
+      score = 80;
+    }
+
+    if (locality != null) score += 3;
+    if (nearBorder) score -= 14;
+    if (approximate) score -= 16;
+    if (outsideZemam) score -= 12;
+
+    if (accuracyM != null) {
+      if (accuracyM! <= 15) {
+        score += 3;
+      } else if (accuracyM! > 120) {
+        score -= 15;
+      } else if (accuracyM! > 50) {
+        score -= 7;
+      }
+    }
+
+    if (confidence == ZoneConfidence.high) {
+      score = score.clamp(86, 99);
+    } else if (confidence == ZoneConfidence.medium) {
+      score = score.clamp(66, 85);
+    } else {
+      score = score.clamp(35, 65);
+    }
+
+    return score;
+  }
+
+  /// Arabic descriptive label of confidence
+  String get confidenceLabelAr {
+    final pct = confidencePercentage;
+    if (pct >= 90) return 'مطابقة ممتازة ومؤكدة';
+    if (pct >= 75) return 'دقة جيدة جداً';
+    if (pct >= 60) return 'دقة متوسطة';
+    return 'قريب من الحدود (يُفضل التأكيد)';
+  }
+
+  ZoneMatch copyWith({
+    Locality? locality,
+    double? lat,
+    double? lng,
+    double? accuracyM,
+  }) =>
+      ZoneMatch(
         governorate: governorate,
         district: district,
         highlight: highlight,
@@ -217,5 +281,8 @@ final class ZoneMatch {
         approximate: approximate,
         nearBorder: nearBorder,
         outsideZemam: outsideZemam,
+        lat: lat ?? this.lat,
+        lng: lng ?? this.lng,
+        accuracyM: accuracyM ?? this.accuracyM,
       );
 }

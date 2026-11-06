@@ -137,6 +137,9 @@ final class ZoneResolver {
       approximate: approximate,
       nearBorder: nearBorder,
       outsideZemam: outsideZemam,
+      lat: lat,
+      lng: lng,
+      accuracyM: accuracyM,
     );
     if (previous == null) return fresh;
     return _applyHysteresis(fresh, previous, lat, lng, accuracyM);
@@ -214,6 +217,9 @@ final class ZoneResolver {
       approximate: fresh.approximate,
       nearBorder: fresh.nearBorder,
       outsideZemam: fresh.outsideZemam,
+      lat: lat,
+      lng: lng,
+      accuracyM: accuracyM,
     );
   }
 
