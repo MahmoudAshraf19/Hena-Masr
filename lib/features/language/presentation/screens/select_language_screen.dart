@@ -380,7 +380,7 @@ class _SelectLanguageScreenState extends ConsumerState<SelectLanguageScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                    padding: const EdgeInsets.fromLTRB(24, 14, 24, 6),
                     child: _reveal(
                       begin: 0.04,
                       end: 0.50,
@@ -481,73 +481,59 @@ class _SelectLanguageScreenState extends ConsumerState<SelectLanguageScreen>
   Widget _buildHeadline(LanguageItem item) {
     final copy = _kCopy[item.code] ?? _kCopy['en']!;
 
-    return SizedBox(
-      height: 168,
-      width: double.infinity,
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 650),
-        switchInCurve: Curves.easeOutCubic,
-        switchOutCurve: Curves.easeInCubic,
-        transitionBuilder: (child, anim) {
-          final slide = Tween<Offset>(
-            begin: const Offset(0, 0.12),
-            end: Offset.zero,
-          ).animate(anim);
-          return FadeTransition(
-            opacity: anim,
-            child: SlideTransition(position: slide, child: child),
-          );
-        },
-        layoutBuilder: (current, previous) => Stack(
-          alignment: Alignment.topLeft,
-          children: [...previous, if (current != null) current],
-        ),
-        child: SizedBox(
-          key: ValueKey(item.code),
-          width: double.infinity,
-          child: Directionality(
-            textDirection: item.isRtl ? TextDirection.rtl : TextDirection.ltr,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 36,
-                  height: 3,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(2),
-                    gradient: const LinearGradient(
-                      colors: [_P.goldLight, _P.goldDeep],
-                    ),
-                  ),
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 650),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      transitionBuilder: (child, anim) {
+        final slide = Tween<Offset>(
+          begin: const Offset(0, 0.12),
+          end: Offset.zero,
+        ).animate(anim);
+        return FadeTransition(
+          opacity: anim,
+          child: SlideTransition(position: slide, child: child),
+        );
+      },
+      layoutBuilder: (current, previous) => Stack(
+        alignment: Alignment.topLeft,
+        children: [...previous, if (current != null) current],
+      ),
+      child: SizedBox(
+        key: ValueKey(item.code),
+        width: double.infinity,
+        child: Directionality(
+          textDirection: item.isRtl ? TextDirection.rtl : TextDirection.ltr,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                copy.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 30,
+                  height: 1.15,
+                  fontWeight: FontWeight.w800,
+                  // Letter-spacing breaks Arabic letter joining → keep 0.
+                  letterSpacing: item.isRtl ? 0 : -0.6,
+                  color: Colors.white,
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  copy.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 31,
-                    height: 1.15,
-                    fontWeight: FontWeight.w800,
-                    // Letter-spacing breaks Arabic letter joining → keep 0.
-                    letterSpacing: item.isRtl ? 0 : -0.6,
-                    color: Colors.white,
-                  ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                copy.subtitle,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.35,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.white.withValues(alpha: 0.68),
                 ),
-                const SizedBox(height: 10),
-                Text(
-                  copy.subtitle,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 14.5,
-                    height: 1.5,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.white.withValues(alpha: 0.68),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -568,7 +554,7 @@ class _SelectLanguageScreenState extends ConsumerState<SelectLanguageScreen>
       child: GridView.builder(
         controller: _scroll,
         physics: const BouncingScrollPhysics(),
-        padding: EdgeInsets.fromLTRB(20, 10, 20, 132 + bottomInset),
+        padding: EdgeInsets.fromLTRB(20, 6, 20, 132 + bottomInset),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           mainAxisSpacing: 12,
