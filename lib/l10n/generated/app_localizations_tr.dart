@@ -4,7 +4,7 @@ import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
 
-/// The translations for `tr`.
+/// The translations for Turkish (`tr`).
 class AppLocalizationsTr extends AppLocalizations {
   AppLocalizationsTr([String locale = 'tr']) : super(locale);
 
@@ -60,7 +60,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get chooseLanguageTitle => 'Dilinizi seçin';
 
   @override
-  String get chooseLanguageSubtitle => 'Mısır’ı kendi tarzınızda keşfetmek için tercih ettiğiniz dili seçin.';
+  String get chooseLanguageSubtitle =>
+      'Mısır’ı kendi tarzınızda keşfetmek için tercih ettiğiniz dili seçin.';
 
   @override
   String get continueAction => 'Devam';

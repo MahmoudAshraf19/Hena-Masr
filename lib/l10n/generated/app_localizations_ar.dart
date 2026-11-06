@@ -4,7 +4,7 @@ import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
 
-/// The translations for `ar`.
+/// The translations for Arabic (`ar`).
 class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
@@ -60,7 +60,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chooseLanguageTitle => 'اختر لغتك';
 
   @override
-  String get chooseLanguageSubtitle => 'اختر لغتك المفضلة لتستكشف مصر بطريقتك الخاصة.';
+  String get chooseLanguageSubtitle =>
+      'اختر لغتك المفضلة لتستكشف مصر بطريقتك الخاصة.';
 
   @override
   String get continueAction => 'متابعة';

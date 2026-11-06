@@ -79,3 +79,4 @@ final languageSelectionControllerProvider =
     NotifierProvider<LanguageSelectionController, LanguageSelectionState>(
   LanguageSelectionController.new,
 );
+

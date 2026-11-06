@@ -4,7 +4,7 @@ import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
 
-/// The translations for `es`.
+/// The translations for Spanish Castilian (`es`).
 class AppLocalizationsEs extends AppLocalizations {
   AppLocalizationsEs([String locale = 'es']) : super(locale);
 
@@ -60,7 +60,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get chooseLanguageTitle => 'Elige tu idioma';
 
   @override
-  String get chooseLanguageSubtitle => 'Selecciona tu idioma preferido para explorar Egipto a tu manera.';
+  String get chooseLanguageSubtitle =>
+      'Selecciona tu idioma preferido para explorar Egipto a tu manera.';
 
   @override
   String get continueAction => 'Continuar';

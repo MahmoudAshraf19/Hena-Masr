@@ -4,7 +4,7 @@ import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
 
-/// The translations for `en`.
+/// The translations for English (`en`).
 class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
@@ -60,7 +60,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chooseLanguageTitle => 'Choose your language';
 
   @override
-  String get chooseLanguageSubtitle => 'Select your preferred language to explore Egypt your way.';
+  String get chooseLanguageSubtitle =>
+      'Select your preferred language to explore Egypt your way.';
 
   @override
   String get continueAction => 'Continue';

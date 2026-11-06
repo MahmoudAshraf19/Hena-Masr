@@ -4,7 +4,7 @@ import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
 
-/// The translations for `sr`.
+/// The translations for Serbian (`sr`).
 class AppLocalizationsSr extends AppLocalizations {
   AppLocalizationsSr([String locale = 'sr']) : super(locale);
 
@@ -60,7 +60,8 @@ class AppLocalizationsSr extends AppLocalizations {
   String get chooseLanguageTitle => 'Изаберите језик';
 
   @override
-  String get chooseLanguageSubtitle => 'Изаберите жељени језик да истражите Египат на свој начин.';
+  String get chooseLanguageSubtitle =>
+      'Изаберите жељени језик да истражите Египат на свој начин.';
 
   @override
   String get continueAction => 'Настави';

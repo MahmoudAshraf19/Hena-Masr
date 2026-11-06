@@ -4,7 +4,7 @@ import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
 
-/// The translations for `nl`.
+/// The translations for Dutch Flemish (`nl`).
 class AppLocalizationsNl extends AppLocalizations {
   AppLocalizationsNl([String locale = 'nl']) : super(locale);
 
@@ -60,7 +60,8 @@ class AppLocalizationsNl extends AppLocalizations {
   String get chooseLanguageTitle => 'Kies je taal';
 
   @override
-  String get chooseLanguageSubtitle => 'Kies je voorkeurstaal om Egypte op jouw manier te ontdekken.';
+  String get chooseLanguageSubtitle =>
+      'Kies je voorkeurstaal om Egypte op jouw manier te ontdekken.';
 
   @override
   String get continueAction => 'Doorgaan';

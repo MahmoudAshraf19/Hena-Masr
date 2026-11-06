@@ -4,7 +4,7 @@ import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
 
-/// The translations for `it`.
+/// The translations for Italian (`it`).
 class AppLocalizationsIt extends AppLocalizations {
   AppLocalizationsIt([String locale = 'it']) : super(locale);
 
@@ -60,7 +60,8 @@ class AppLocalizationsIt extends AppLocalizations {
   String get chooseLanguageTitle => 'Scegli la tua lingua';
 
   @override
-  String get chooseLanguageSubtitle => 'Seleziona la lingua che preferisci per esplorare l’Egitto a modo tuo.';
+  String get chooseLanguageSubtitle =>
+      'Seleziona la lingua che preferisci per esplorare l’Egitto a modo tuo.';
 
   @override
   String get continueAction => 'Continua';
