@@ -131,6 +131,7 @@ abstract final class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
+      fontFamily: AppTypography.fontFamily(arabic: arabic),
       colorScheme: scheme,
       scaffoldBackgroundColor: scheme.surface,
       canvasColor: scheme.surface,

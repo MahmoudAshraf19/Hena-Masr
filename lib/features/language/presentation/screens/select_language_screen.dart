@@ -7,10 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hena_masr/core/constants/asset_paths.dart';
 import 'package:hena_masr/core/localization/locale_controller.dart';
 import 'package:hena_masr/core/theme/app_colors.dart';
+import 'package:hena_masr/core/theme/app_typography.dart';
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  DATA
-// ─────────────────────────────────────────────────────────────────────────────
 
 /// Data model representing a supported language option.
 class LanguageItem {
@@ -257,7 +255,7 @@ class _SelectLanguageScreenState extends ConsumerState<SelectLanguageScreen>
 
     _enter = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1300),
+      duration: const Duration(milliseconds: 950),
     );
     _ambient = AnimationController(
       vsync: this,
@@ -469,6 +467,9 @@ class _SelectLanguageScreenState extends ConsumerState<SelectLanguageScreen>
   /// list never shifts when the text changes.
   Widget _buildHeader(LanguageItem item) {
     final copy = _kCopy[item.code] ?? _kCopy['en']!;
+    final family = item.code == 'ar'
+        ? AppTypography.arabicFontFamily
+        : AppTypography.latinFontFamily;
 
     return SizedBox(
       height: 78,
@@ -507,6 +508,7 @@ class _SelectLanguageScreenState extends ConsumerState<SelectLanguageScreen>
                       copy.title,
                       maxLines: 1,
                       style: TextStyle(
+                        fontFamily: family,
                         fontSize: 26,
                         height: 1.2,
                         fontWeight: FontWeight.w700,
@@ -522,6 +524,7 @@ class _SelectLanguageScreenState extends ConsumerState<SelectLanguageScreen>
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
+                      fontFamily: family,
                       fontSize: 14,
                       height: 1.4,
                       color: AppColors.mutedDark,
@@ -611,26 +614,30 @@ class _SelectLanguageScreenState extends ConsumerState<SelectLanguageScreen>
                       valueColor: AlwaysStoppedAnimation(AppColors.basalt),
                     ),
                   )
-                : Row(
-                    key: ValueKey(selected.code),
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        copy.cont,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: rtl ? 0 : 0.2,
+                : Directionality(
+                    textDirection: TextDirection.ltr,
+                    child: Row(
+                      key: ValueKey(selected.code),
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          copy.cont,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            fontFamily: selected.code == 'ar'
+                                ? AppTypography.arabicFontFamily
+                                : AppTypography.latinFontFamily,
+                            letterSpacing: rtl ? 0 : 0.2,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Icon(
-                        rtl
-                            ? Icons.arrow_back_rounded
-                            : Icons.arrow_forward_rounded,
-                        size: 20,
-                      ),
-                    ],
+                        const SizedBox(width: 8),
+                        const Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 20,
+                        ),
+                      ],
+                    ),
                   ),
           ),
         ),
@@ -723,13 +730,13 @@ class _LanguageRow extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
-      label: '${item.nativeName}, ${item.englishName}',
+      label: item.nativeName,
       child: _PressScale(
         onTap: onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOutCubic,
-          height: 60,
+          height: 58,
           padding: const EdgeInsets.symmetric(horizontal: 14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
@@ -744,39 +751,24 @@ class _LanguageRow extends StatelessWidget {
             ),
           ),
           child: Directionality(
-            textDirection: item.isRtl ? TextDirection.rtl : TextDirection.ltr,
+            textDirection: TextDirection.ltr,
             child: Row(
               children: [
                 _Flag(asset: item.flagAsset, code: item.code),
                 const SizedBox(width: 14),
                 Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.nativeName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          height: 1.25,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.papyrus,
-                        ),
-                      ),
-                      AnimatedDefaultTextStyle(
-                        duration: const Duration(milliseconds: 300),
-                        style: TextStyle(
-                          fontSize: 12,
-                          height: 1.3,
-                          color: selected
-                              ? AppColors.gold
-                              : AppColors.mutedDark,
-                        ),
-                        child: Text(item.englishName),
-                      ),
-                    ],
+                  child: Text(
+                    item.nativeName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: item.code == 'ar'
+                          ? AppTypography.arabicFontFamily
+                          : AppTypography.latinFontFamily,
+                      color: AppColors.papyrus,
+                    ),
                   ),
                 ),
                 _RadioDot(selected: selected),
@@ -834,13 +826,14 @@ class _RadioDot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 250),
       curve: Curves.easeOutCubic,
       width: 22,
       height: 22,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
+        color: selected ? AppColors.gold : Colors.transparent,
         border: Border.all(
           color: selected
               ? AppColors.gold
@@ -850,15 +843,12 @@ class _RadioDot extends StatelessWidget {
       ),
       child: AnimatedScale(
         scale: selected ? 1 : 0,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOutCubic,
-        child: Container(
-          width: 10,
-          height: 10,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.gold,
-          ),
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOutBack,
+        child: const Icon(
+          Icons.check_rounded,
+          size: 15,
+          color: AppColors.basalt,
         ),
       ),
     );

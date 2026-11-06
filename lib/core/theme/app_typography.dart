@@ -1,26 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-/// Plus Jakarta Sans for Latin scripts, Cairo for Arabic.
+/// IBM Plex Sans Arabic for Arabic script, Inter for Latin / Foreign scripts.
 abstract final class AppTypography {
+  static const String arabicFontFamily = 'IBMPlexSansArabic';
+  static const String latinFontFamily = 'Inter';
+
+  static String fontFamily({required bool arabic}) =>
+      arabic ? arabicFontFamily : latinFontFamily;
+
   static TextTheme textTheme({
     required Color color,
     required Color muted,
     required bool arabic,
   }) {
-    final base = arabic
-        ? GoogleFonts.cairoTextTheme()
-        : GoogleFonts.plusJakartaSansTextTheme();
+    final family = fontFamily(arabic: arabic);
 
-    TextStyle? s(
-      TextStyle? t, {
+    TextStyle s({
       required double size,
       required FontWeight weight,
       double? height,
       double? spacing,
       Color? c,
     }) =>
-        t?.copyWith(
+        TextStyle(
+          fontFamily: family,
           fontSize: size,
           fontWeight: weight,
           height: height,
@@ -28,36 +31,36 @@ abstract final class AppTypography {
           color: c ?? color,
         );
 
-    return base.copyWith(
-      displayLarge: s(base.displayLarge,
+    return TextTheme(
+      displayLarge: s(
           size: 40, weight: FontWeight.w800, height: 1.15, spacing: -0.8),
-      displayMedium: s(base.displayMedium,
+      displayMedium: s(
           size: 34, weight: FontWeight.w800, height: 1.15, spacing: -0.6),
-      displaySmall: s(base.displaySmall,
+      displaySmall: s(
           size: 30, weight: FontWeight.w800, height: 1.2, spacing: -0.4),
-      headlineLarge: s(base.headlineLarge,
+      headlineLarge: s(
           size: 28, weight: FontWeight.w800, height: 1.2, spacing: -0.3),
-      headlineMedium: s(base.headlineMedium,
+      headlineMedium: s(
           size: 24, weight: FontWeight.w800, height: 1.25),
-      headlineSmall: s(base.headlineSmall,
+      headlineSmall: s(
           size: 20, weight: FontWeight.w800, height: 1.3),
       titleLarge:
-          s(base.titleLarge, size: 18, weight: FontWeight.w800, height: 1.3),
+          s(size: 18, weight: FontWeight.w800, height: 1.3),
       titleMedium:
-          s(base.titleMedium, size: 16, weight: FontWeight.w600, height: 1.35),
+          s(size: 16, weight: FontWeight.w600, height: 1.35),
       titleSmall:
-          s(base.titleSmall, size: 14, weight: FontWeight.w600, height: 1.35),
+          s(size: 14, weight: FontWeight.w600, height: 1.35),
       bodyLarge:
-          s(base.bodyLarge, size: 16, weight: FontWeight.w400, height: 1.5),
+          s(size: 16, weight: FontWeight.w400, height: 1.5),
       bodyMedium:
-          s(base.bodyMedium, size: 14, weight: FontWeight.w400, height: 1.45),
-      bodySmall: s(base.bodySmall,
+          s(size: 14, weight: FontWeight.w400, height: 1.45),
+      bodySmall: s(
           size: 12, weight: FontWeight.w400, height: 1.4, c: muted),
-      labelLarge: s(base.labelLarge,
+      labelLarge: s(
           size: 14, weight: FontWeight.w800, spacing: 0.1),
       labelMedium:
-          s(base.labelMedium, size: 12, weight: FontWeight.w600, spacing: 0.1),
-      labelSmall: s(base.labelSmall,
+          s(size: 12, weight: FontWeight.w600, spacing: 0.1),
+      labelSmall: s(
           size: 11, weight: FontWeight.w600, spacing: 0.2, c: muted),
     );
   }
