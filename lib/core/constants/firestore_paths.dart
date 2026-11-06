@@ -1,4 +1,4 @@
-/// Centralized Firestore collections and document paths for Hana Masr.
+/// Centralized Firestore collections and document paths for Hena Masar.
 abstract final class FirestorePaths {
   // --- Public Collections (Read-only for users, managed via Admin/CMS) ---
   static const String cities = 'cities';

@@ -9,7 +9,7 @@ class AppLocalizationsCs extends AppLocalizations {
   AppLocalizationsCs([String locale = 'cs']) : super(locale);
 
   @override
-  String get appName => 'Hana Masr';
+  String get appName => 'Hena Masar';
 
   @override
   String get explore => 'Objevovat';

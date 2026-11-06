@@ -1,8 +1,8 @@
 <div align="center">
 
-  <img src="assets/icons/app_logo.png" alt="Hana Masr Logo" width="130" height="130" style="border-radius: 28px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);" />
+  <img src="assets/icons/app_logo.png" alt="Hena Masar Logo" width="130" height="130" style="border-radius: 28px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);" />
 
-  # Hana Masr (هنا مصر)
+  # Hena Masar
   ### The Intelligent, Offline-First Tourism Companion for Egypt
 
   [![Flutter](https://img.shields.io/badge/Flutter-3.27+-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
@@ -23,7 +23,7 @@
 
 ## 🌟 Executive Overview
 
-**Hana Masr** is not merely a travel guide; it is an intelligent mobility and cultural companion designed specifically for navigating Egypt's rich heritage sites and modern cities. Built with an **offline-first philosophy**, Hana Masr eliminates roaming friction and spotty desert connectivity by providing verified routes, transparent fare estimates, localized scam protection, and in-depth cultural insights in **15 languages**.
+**Hena Masar** is not merely a travel guide; it is an intelligent mobility and cultural companion designed specifically for navigating Egypt's rich heritage sites and modern cities. Built with an **offline-first philosophy**, Hena Masar eliminates roaming friction and spotty desert connectivity by providing verified routes, transparent fare estimates, localized scam protection, and in-depth cultural insights in **15 languages**.
 
 Every architectural layer adheres to strict **Clean Architecture** and **SOLID** principles, delivering predictable testability, modular maintainability, and fluid 60/120 FPS performance across iOS, Android, and Web.
 
@@ -83,7 +83,7 @@ Every architectural layer adheres to strict **Clean Architecture** and **SOLID**
 
 ## 🏗️ Architecture & Engineering Blueprint
 
-Hana Masr implements **Feature-First Clean Architecture**, isolating business domains from infrastructure dependencies:
+Hena Masar implements **Feature-First Clean Architecture**, isolating business domains from infrastructure dependencies:
 
 ```mermaid
 graph TD
@@ -231,7 +231,7 @@ lib/
 
 ## 🛡️ Code Quality & Quality Assurance
 
-Hana Masr enforces rigorous static analysis standards:
+Hena Masar enforces rigorous static analysis standards:
 
 ```bash
 # Run strict static code analyzer
@@ -272,4 +272,4 @@ flutter test --coverage
 ## 📄 License & Attribution
 
 Designed and engineered with passion for Egypt.  
-© 2026 **Hana Masr Team**. All rights reserved.
+© 2026 **Hena Masar Team**. All rights reserved.

@@ -513,7 +513,7 @@ class _SelectLanguageScreenState extends ConsumerState<SelectLanguageScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'HENA MASR',
+              'HENA MASAR',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w800,

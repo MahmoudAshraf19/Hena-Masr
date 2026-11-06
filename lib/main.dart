@@ -17,19 +17,19 @@ import 'features/splash/presentation/screens/splash_screen.dart';
 
 void main() async {
   runZonedGuarded(() async {
-    debugPrint('🚀 [HanaMasr Step 1/5] Initializing Flutter bindings...');
+    debugPrint('🚀 [HenaMasar Step 1/5] Initializing Flutter bindings...');
     WidgetsFlutterBinding.ensureInitialized();
 
-    debugPrint('🔤 [HanaMasr Step 2/5] Enabling GoogleFonts runtime fetching...');
+    debugPrint('🔤 [HenaMasar Step 2/5] Enabling GoogleFonts runtime fetching...');
     GoogleFonts.config.allowRuntimeFetching = true;
 
-    debugPrint('🎨 [HanaMasr Step 3/5] Loading ThemeController...');
+    debugPrint('🎨 [HenaMasar Step 3/5] Loading ThemeController...');
     final themeController = await ThemeController.load();
 
-    debugPrint('💾 [HanaMasr Step 4/5] Initializing SharedPreferences...');
+    debugPrint('💾 [HenaMasar Step 4/5] Initializing SharedPreferences...');
     final prefs = await SharedPreferences.getInstance();
 
-    debugPrint('📱 [HanaMasr Step 5/5] Launching runApp with DevicePreview & ProviderScope...');
+    debugPrint('📱 [HenaMasar Step 5/5] Launching runApp with DevicePreview & ProviderScope...');
     runApp(
       DevicePreview(
         enabled: !kReleaseMode,
@@ -37,32 +37,32 @@ void main() async {
           overrides: [
             sharedPreferencesProvider.overrideWithValue(prefs),
           ],
-          child: HanaMasrApp(themeController: themeController),
+          child: HenaMasarApp(themeController: themeController),
         ),
       ),
     );
   }, (error, stack) {
-    debugPrint('❌ [HanaMasr CRITICAL ERROR] runZonedGuarded caught: $error');
+    debugPrint('❌ [HenaMasar CRITICAL ERROR] runZonedGuarded caught: $error');
     debugPrint('$stack');
   });
 }
 
-class HanaMasrApp extends ConsumerWidget {
-  const HanaMasrApp({super.key, required this.themeController});
+class HenaMasarApp extends ConsumerWidget {
+  const HenaMasarApp({super.key, required this.themeController});
 
   final ThemeController themeController;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentLocale = ref.watch(localeProvider);
-    debugPrint('🏗️ [HanaMasr App] Building MaterialApp (Locale: ${currentLocale.languageCode})...');
+    debugPrint('🏗️ [HenaMasar App] Building MaterialApp (Locale: ${currentLocale.languageCode})...');
 
     return ListenableBuilder(
       listenable: themeController,
       builder: (context, _) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
-          title: 'هنا مصر',
+          title: 'Hena Masar',
           // DevicePreview integration with fallback to Riverpod locale
           locale: DevicePreview.locale(context) ?? currentLocale,
           builder: DevicePreview.appBuilder,
@@ -96,10 +96,10 @@ class _AppRootState extends State<_AppRoot> {
   Widget build(BuildContext context) {
     // 1. Pharaonic 3D Splash Screen
     if (!_splashFinished) {
-      debugPrint('🏺 [HanaMasr Navigator] Stage 1: Rendering SplashScreen...');
+      debugPrint('🏺 [HenaMasar Navigator] Stage 1: Rendering SplashScreen...');
       return SplashScreen(
         onInitialized: () {
-          debugPrint('✅ [HanaMasr Navigator] Splash finished! Navigating to SelectLanguageScreen...');
+          debugPrint('✅ [HenaMasar Navigator] Splash finished! Navigating to SelectLanguageScreen...');
           if (mounted) {
             setState(() {
               _splashFinished = true;
@@ -110,10 +110,10 @@ class _AppRootState extends State<_AppRoot> {
     }
 
     // 2. Language Selection Screen
-    debugPrint('🌐 [HanaMasr Navigator] Stage 2: Rendering SelectLanguageScreen...');
+    debugPrint('🌐 [HenaMasar Navigator] Stage 2: Rendering SelectLanguageScreen...');
     return SelectLanguageScreen(
       onContinue: () {
-        debugPrint('🎯 [HanaMasr Navigator] Language selected! Ready for next step.');
+        debugPrint('🎯 [HenaMasar Navigator] Language selected! Ready for next step.');
       },
     );
   }

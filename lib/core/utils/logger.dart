@@ -1,6 +1,6 @@
 import 'package:logger/logger.dart';
 
-/// Centralized logger instance for Hana Masr.
+/// Centralized logger instance for Hena Masar.
 abstract final class AppLogger {
   static final Logger _logger = Logger(
     printer: PrettyPrinter(
