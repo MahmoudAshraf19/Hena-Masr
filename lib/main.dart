@@ -94,27 +94,23 @@ class _AppRootState extends State<_AppRoot> {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Pharaonic 3D Splash Screen
-    if (!_splashFinished) {
-      debugPrint('🏺 [HenaMasar Navigator] Stage 1: Rendering SplashScreen...');
-      return SplashScreen(
-        onInitialized: () {
-          debugPrint('✅ [HenaMasar Navigator] Splash finished! Navigating to SelectLanguageScreen...');
-          if (mounted) {
-            setState(() {
-              _splashFinished = true;
-            });
-          }
-        },
-      );
-    }
-
-    // 2. Language Selection Screen
-    debugPrint('🌐 [HenaMasar Navigator] Stage 2: Rendering SelectLanguageScreen...');
-    return SelectLanguageScreen(
-      onContinue: () {
-        debugPrint('🎯 [HenaMasar Navigator] Language selected! Ready for next step.');
-      },
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 700),
+      switchInCurve: Curves.easeOut,
+      switchOutCurve: Curves.easeIn,
+      child: !_splashFinished
+          ? SplashScreen(
+              key: const ValueKey('splash'),
+              onInitialized: () {
+                if (mounted) setState(() => _splashFinished = true);
+              },
+            )
+          : SelectLanguageScreen(
+              key: const ValueKey('language'),
+              onContinue: () {
+                debugPrint('🎯 [HenaMasar Navigator] Language selected! Ready for next step.');
+              },
+            ),
     );
   }
 }
