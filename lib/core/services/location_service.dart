@@ -17,12 +17,14 @@ class LocationService {
     Duration timeLimit = const Duration(seconds: 9),
   }) async {
     try {
-      // 1. Verify location services hardware/browser availability
-      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        return const Err<Position>(
-          LocationFailure(LocationIssue.serviceDisabled),
-        );
+      // 1. Verify location services hardware (Android / iOS only)
+      if (!kIsWeb) {
+        final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+        if (!serviceEnabled) {
+          return const Err<Position>(
+            LocationFailure(LocationIssue.serviceDisabled),
+          );
+        }
       }
 
       // 2. Cross-platform permission verification and escalation
@@ -53,6 +55,19 @@ class LocationService {
           AppLogger.info('Location fix obtained from last known position fallback.');
           return Success<Position>(last);
         }
+        // Web-specific resilience: fallback to low accuracy (IP/Wi-Fi database)
+        if (kIsWeb) {
+          try {
+            final webFallback = await Geolocator.getCurrentPosition(
+              locationSettings: const WebSettings(
+                accuracy: LocationAccuracy.low,
+                maximumAge: Duration(minutes: 10),
+                timeLimit: Duration(seconds: 4),
+              ),
+            );
+            return Success<Position>(webFallback);
+          } catch (_) {}
+        }
         return const Err<Position>(LocationFailure(LocationIssue.timeout));
       }
     } catch (e, st) {
@@ -65,7 +80,7 @@ class LocationService {
   LocationSettings _buildPlatformSettings({required Duration timeLimit}) {
     if (kIsWeb) {
       return WebSettings(
-        accuracy: LocationAccuracy.high,
+        accuracy: LocationAccuracy.medium,
         maximumAge: const Duration(minutes: 5),
         timeLimit: timeLimit,
       );
