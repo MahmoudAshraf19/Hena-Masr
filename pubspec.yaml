@@ -84,6 +84,7 @@ flutter:
     - assets/fonts/
     - assets/google_fonts/
     - assets/icons/
+    - assets/icons/flags/
     - assets/images/
     - assets/images/splash/
     - assets/images/onboarding/
