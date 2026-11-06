@@ -11,7 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'core/di/providers.dart';
 import 'core/localization/supported_locales.dart';
 import 'core/theme/theme.dart';
-import 'features/zones/presentation/screens/zone_result_screen.dart';
+import 'features/splash/presentation/screens/splash_screen.dart';
 
 void main() async {
   runZonedGuarded(() async {
@@ -52,7 +52,7 @@ class HanaMasrApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('🏗️ [HanaMasr App] Building MaterialApp with ZoneResultScreen...');
+    debugPrint('🏗️ [HanaMasr App] Building MaterialApp (SplashScreen active)...');
     return ListenableBuilder(
       listenable: themeController,
       builder: (context, _) {
@@ -73,7 +73,7 @@ class HanaMasrApp extends StatelessWidget {
           theme: AppTheme.light(defaultLocale),
           darkTheme: AppTheme.dark(defaultLocale),
           themeMode: themeController.mode,
-          home: const ZoneResultScreen(),
+          home: const SplashScreen(),
         );
       },
     );
