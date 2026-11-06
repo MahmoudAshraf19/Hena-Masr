@@ -59,10 +59,10 @@ class LocationService {
         if (kIsWeb) {
           try {
             final webFallback = await Geolocator.getCurrentPosition(
-              locationSettings: const WebSettings(
+              locationSettings: WebSettings(
                 accuracy: LocationAccuracy.low,
-                maximumAge: Duration(minutes: 10),
-                timeLimit: Duration(seconds: 4),
+                maximumAge: const Duration(minutes: 10),
+                timeLimit: const Duration(seconds: 4),
               ),
             );
             return Success<Position>(webFallback);
