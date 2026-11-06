@@ -15,5 +15,8 @@
   "searchHint": "ابحث عن أماكن أو مدن أو جولات",
   "language": "اللغة",
   "retry": "إعادة المحاولة",
-  "noInternet": "لا يوجد اتصال بالإنترنت"
+  "noInternet": "لا يوجد اتصال بالإنترنت",
+  "chooseLanguageTitle": "اختر لغتك",
+  "chooseLanguageSubtitle": "اختر لغتك المفضلة لتستكشف مصر بطريقتك الخاصة.",
+  "continueAction": "متابعة"
 }

@@ -4,7 +4,7 @@ import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
 
-/// The translations for French (`fr`).
+/// The translations for `fr`.
 class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
@@ -55,4 +55,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get noInternet => 'Pas de connexion Internet';
+
+  @override
+  String get chooseLanguageTitle => 'Choisissez votre langue';
+
+  @override
+  String get chooseLanguageSubtitle => 'Sélectionnez votre langue préférée pour explorer l’Égypte à votre façon.';
+
+  @override
+  String get continueAction => 'Continuer';
 }

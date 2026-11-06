@@ -15,6 +15,8 @@
   "searchHint": "Hledat místa, města, výlety",
   "language": "Jazyk",
   "retry": "Zkusit znovu",
-  "noInternet": "Žádné připojení k internetu"
+  "noInternet": "Žádné připojení k internetu",
+  "chooseLanguageTitle": "Vyberte jazyk",
+  "chooseLanguageSubtitle": "Vyberte preferovaný jazyk a objevte Egypt po svém.",
+  "continueAction": "Pokračovat"
 }
-

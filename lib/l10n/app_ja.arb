@@ -15,6 +15,8 @@
   "searchHint": "場所、都市、ツアーを検索",
   "language": "言語",
   "retry": "再試行",
-  "noInternet": "インターネット接続がありません"
+  "noInternet": "インターネット接続がありません",
+  "chooseLanguageTitle": "言語を選択",
+  "chooseLanguageSubtitle": "お好みの言語を選んで、あなたらしくエジプトを探索しましょう。",
+  "continueAction": "続ける"
 }
-

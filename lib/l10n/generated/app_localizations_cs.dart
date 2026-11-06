@@ -4,7 +4,7 @@ import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
 
-/// The translations for Czech (`cs`).
+/// The translations for `cs`.
 class AppLocalizationsCs extends AppLocalizations {
   AppLocalizationsCs([String locale = 'cs']) : super(locale);
 
@@ -55,4 +55,13 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get noInternet => 'Žádné připojení k internetu';
+
+  @override
+  String get chooseLanguageTitle => 'Vyberte jazyk';
+
+  @override
+  String get chooseLanguageSubtitle => 'Vyberte preferovaný jazyk a objevte Egypt po svém.';
+
+  @override
+  String get continueAction => 'Pokračovat';
 }

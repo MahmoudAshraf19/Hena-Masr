@@ -95,9 +95,21 @@ class _AppRootState extends State<_AppRoot> {
   @override
   Widget build(BuildContext context) {
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 700),
-      switchInCurve: Curves.easeOut,
-      switchOutCurve: Curves.easeIn,
+      duration: const Duration(milliseconds: 800),
+      switchInCurve: Curves.easeInOut,
+      switchOutCurve: Curves.easeInOut,
+      layoutBuilder: (currentChild, previousChildren) => Stack(
+        fit: StackFit.expand,
+        alignment: Alignment.center,
+        children: [
+          ...previousChildren,
+          if (currentChild != null) currentChild,
+        ],
+      ),
+      transitionBuilder: (child, animation) => FadeTransition(
+        opacity: animation,
+        child: child,
+      ),
       child: !_splashFinished
           ? SplashScreen(
               key: const ValueKey('splash'),

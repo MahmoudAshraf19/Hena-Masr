@@ -4,7 +4,7 @@ import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
 
-/// The translations for Japanese (`ja`).
+/// The translations for `ja`.
 class AppLocalizationsJa extends AppLocalizations {
   AppLocalizationsJa([String locale = 'ja']) : super(locale);
 
@@ -55,4 +55,13 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get noInternet => 'インターネット接続がありません';
+
+  @override
+  String get chooseLanguageTitle => '言語を選択';
+
+  @override
+  String get chooseLanguageSubtitle => 'お好みの言語を選んで、あなたらしくエジプトを探索しましょう。';
+
+  @override
+  String get continueAction => '続ける';
 }

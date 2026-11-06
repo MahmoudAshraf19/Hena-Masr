@@ -15,6 +15,8 @@
   "searchHint": "Rechercher des lieux, villes, visites",
   "language": "Langue",
   "retry": "Réessayer",
-  "noInternet": "Pas de connexion Internet"
+  "noInternet": "Pas de connexion Internet",
+  "chooseLanguageTitle": "Choisissez votre langue",
+  "chooseLanguageSubtitle": "Sélectionnez votre langue préférée pour explorer l’Égypte à votre façon.",
+  "continueAction": "Continuer"
 }
-

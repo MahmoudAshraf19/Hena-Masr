@@ -15,6 +15,8 @@
   "searchHint": "Orte, Städte, Touren suchen",
   "language": "Sprache",
   "retry": "Wiederholen",
-  "noInternet": "Keine Internetverbindung"
+  "noInternet": "Keine Internetverbindung",
+  "chooseLanguageTitle": "Wähle deine Sprache",
+  "chooseLanguageSubtitle": "Wähle deine bevorzugte Sprache, um Ägypten auf deine Art zu entdecken.",
+  "continueAction": "Weiter"
 }
-

@@ -15,6 +15,8 @@
   "searchHint": "搜索地点、城市、行程",
   "language": "语言",
   "retry": "重试",
-  "noInternet": "无网络连接"
+  "noInternet": "无网络连接",
+  "chooseLanguageTitle": "选择您的语言",
+  "chooseLanguageSubtitle": "选择您偏好的语言，以您自己的方式探索埃及。",
+  "continueAction": "继续"
 }
-

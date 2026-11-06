@@ -15,6 +15,8 @@
   "searchHint": "Пошук місць, міст, турів",
   "language": "Мова",
   "retry": "Повторити",
-  "noInternet": "Немає підключення до інтернету"
+  "noInternet": "Немає підключення до інтернету",
+  "chooseLanguageTitle": "Оберіть мову",
+  "chooseLanguageSubtitle": "Оберіть бажану мову, щоб відкрити Єгипет по-своєму.",
+  "continueAction": "Продовжити"
 }
-

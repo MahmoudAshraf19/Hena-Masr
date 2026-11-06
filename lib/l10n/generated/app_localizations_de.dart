@@ -4,7 +4,7 @@ import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
 
-/// The translations for German (`de`).
+/// The translations for `de`.
 class AppLocalizationsDe extends AppLocalizations {
   AppLocalizationsDe([String locale = 'de']) : super(locale);
 
@@ -55,4 +55,13 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get noInternet => 'Keine Internetverbindung';
+
+  @override
+  String get chooseLanguageTitle => 'Wähle deine Sprache';
+
+  @override
+  String get chooseLanguageSubtitle => 'Wähle deine bevorzugte Sprache, um Ägypten auf deine Art zu entdecken.';
+
+  @override
+  String get continueAction => 'Weiter';
 }

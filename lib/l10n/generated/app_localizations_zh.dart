@@ -4,7 +4,7 @@ import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
 
-/// The translations for Chinese (`zh`).
+/// The translations for `zh`.
 class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
@@ -55,4 +55,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get noInternet => '无网络连接';
+
+  @override
+  String get chooseLanguageTitle => '选择您的语言';
+
+  @override
+  String get chooseLanguageSubtitle => '选择您偏好的语言，以您自己的方式探索埃及。';
+
+  @override
+  String get continueAction => '继续';
 }

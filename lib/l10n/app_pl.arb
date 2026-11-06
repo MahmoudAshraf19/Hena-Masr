@@ -15,6 +15,8 @@
   "searchHint": "Szukaj miejsc, miast, wycieczek",
   "language": "Język",
   "retry": "Spróbuj ponownie",
-  "noInternet": "Brak połączenia z internetem"
+  "noInternet": "Brak połączenia z internetem",
+  "chooseLanguageTitle": "Wybierz swój język",
+  "chooseLanguageSubtitle": "Wybierz preferowany język, aby odkrywać Egipt po swojemu.",
+  "continueAction": "Kontynuuj"
 }
-

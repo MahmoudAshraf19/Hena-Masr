@@ -15,5 +15,8 @@
   "searchHint": "Search places, cities, tours",
   "language": "Language",
   "retry": "Retry",
-  "noInternet": "No internet connection"
+  "noInternet": "No internet connection",
+  "chooseLanguageTitle": "Choose your language",
+  "chooseLanguageSubtitle": "Select your preferred language to explore Egypt your way.",
+  "continueAction": "Continue"
 }

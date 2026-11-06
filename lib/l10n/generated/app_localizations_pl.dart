@@ -4,7 +4,7 @@ import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
 
-/// The translations for Polish (`pl`).
+/// The translations for `pl`.
 class AppLocalizationsPl extends AppLocalizations {
   AppLocalizationsPl([String locale = 'pl']) : super(locale);
 
@@ -55,4 +55,13 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get noInternet => 'Brak połączenia z internetem';
+
+  @override
+  String get chooseLanguageTitle => 'Wybierz swój język';
+
+  @override
+  String get chooseLanguageSubtitle => 'Wybierz preferowany język, aby odkrywać Egipt po swojemu.';
+
+  @override
+  String get continueAction => 'Kontynuuj';
 }

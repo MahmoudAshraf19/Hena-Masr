@@ -15,6 +15,8 @@
   "searchHint": "Mekan, şehir, tur ara",
   "language": "Dil",
   "retry": "Tekrar dene",
-  "noInternet": "İnternet bağlantısı yok"
+  "noInternet": "İnternet bağlantısı yok",
+  "chooseLanguageTitle": "Dilinizi seçin",
+  "chooseLanguageSubtitle": "Mısır’ı kendi tarzınızda keşfetmek için tercih ettiğiniz dili seçin.",
+  "continueAction": "Devam"
 }
-

@@ -4,7 +4,7 @@ import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
 
-/// The translations for Ukrainian (`uk`).
+/// The translations for `uk`.
 class AppLocalizationsUk extends AppLocalizations {
   AppLocalizationsUk([String locale = 'uk']) : super(locale);
 
@@ -55,4 +55,13 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get noInternet => 'Немає підключення до інтернету';
+
+  @override
+  String get chooseLanguageTitle => 'Оберіть мову';
+
+  @override
+  String get chooseLanguageSubtitle => 'Оберіть бажану мову, щоб відкрити Єгипет по-своєму.';
+
+  @override
+  String get continueAction => 'Продовжити';
 }
