@@ -107,6 +107,11 @@ class CurrentZoneController extends AsyncNotifier<ZoneState> {
       return;
     }
 
+    if (state.value?.status == ZoneStatus.detecting) {
+      debugPrint('🏛️ [Zones Engine] detect() ignored: detection already in progress.');
+      return;
+    }
+
     debugPrint('🏛️ [Zones Engine] detect() started: requesting location from LocationService...');
     state = AsyncData(ZoneState(
       status: ZoneStatus.detecting,
@@ -146,7 +151,7 @@ class CurrentZoneController extends AsyncNotifier<ZoneState> {
           source: ZoneSource.gps,
           rawPosition: pos,
         ));
-        debugPrint('🎯 [Zones Engine] ZoneState updated to READY! Ready to display in ZoneVerificationScreen.');
+        debugPrint('🎯 [Zones Engine] ZoneState updated to READY! Displaying in ZoneResultScreen.');
       },
       onFailure: (failure) async {
         debugPrint('⚠️ [Zones Engine] Location detection failure: $failure');
