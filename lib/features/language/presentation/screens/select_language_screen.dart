@@ -1,5 +1,4 @@
-import 'dart:async';
-import 'dart:ui';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:hena_masr/core/constants/asset_paths.dart';
 import 'package:hena_masr/core/localization/locale_controller.dart';
-import 'package:hena_masr/core/localization/supported_locales.dart';
+import 'package:hena_masr/core/theme/app_colors.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  DATA
@@ -30,20 +29,20 @@ class LanguageItem {
   });
 }
 
-/// The 15 officially supported languages with UK English as default.
+/// The 15 supported languages. Arabic first in list, English is default selected.
 const List<LanguageItem> kLanguageItems = [
-  LanguageItem(
-    code: 'en',
-    nativeName: 'English',
-    englishName: 'English',
-    flagAsset: AssetPaths.flagBritain,
-  ),
   LanguageItem(
     code: 'ar',
     nativeName: 'العربية',
     englishName: 'Arabic',
     flagAsset: AssetPaths.flagEgypt,
     isRtl: true,
+  ),
+  LanguageItem(
+    code: 'en',
+    nativeName: 'English',
+    englishName: 'English',
+    flagAsset: AssetPaths.flagBritain,
   ),
   LanguageItem(
     code: 'fr',
@@ -125,7 +124,7 @@ const List<LanguageItem> kLanguageItems = [
   ),
 ];
 
-/// Screen copy that morphs live to the language being previewed/selected.
+/// Screen copy that follows the language currently selected.
 class _LangCopy {
   final String title;
   final String subtitle;
@@ -217,26 +216,16 @@ LanguageItem _itemOf(String code) => kLanguageItems.firstWhere(
     );
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  PALETTE
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _P {
-  static const bg = Color(0xFF080D14);
-  static const gold = Color(0xFFE9C46A);
-  static const goldLight = Color(0xFFF7DE98);
-  static const goldDeep = Color(0xFFC9973A);
-  static const ink = Color(0xFF17120A);
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 //  SCREEN
 // ─────────────────────────────────────────────────────────────────────────────
 
+/// First screen after the splash.
+///
+/// Layout: the Giza artwork on top, a calm basalt sheet below with the
+/// language list. Motion is deliberately restrained: one slow entrance,
+/// one very slow background drift, and soft state changes on selection.
 class SelectLanguageScreen extends ConsumerStatefulWidget {
-  const SelectLanguageScreen({
-    super.key,
-    this.onContinue,
-  });
+  const SelectLanguageScreen({super.key, this.onContinue});
 
   final VoidCallback? onContinue;
 
@@ -247,73 +236,82 @@ class SelectLanguageScreen extends ConsumerStatefulWidget {
 
 class _SelectLanguageScreenState extends ConsumerState<SelectLanguageScreen>
     with TickerProviderStateMixin {
+  static const _sheetRadius = 32.0;
+
   late String _selectedCode;
-
-  /// Language used for the headline. Cycles automatically until the user
-  /// interacts, then follows the selection.
-  String _headlineCode = 'en';
-  bool _userInteracted = false;
   bool _busy = false;
+  bool _started = false;
 
-  late final AnimationController _enter; // one-shot entrance choreography
-  late final AnimationController _ambient; // slow background motion
-  late final AnimationController _shine; // button light sweep
+  late final AnimationController _enter; // one-shot entrance
+  late final AnimationController _ambient; // very slow background drift
   final ScrollController _scroll = ScrollController();
-
-  Timer? _ticker;
-  int _tickIndex = 0;
+  final Map<String, GlobalKey> _keys = {
+    for (final l in kLanguageItems) l.code: GlobalKey(),
+  };
 
   @override
   void initState() {
     super.initState();
+    // Default selected language is English
     _selectedCode = 'en';
 
     _enter = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    )..forward();
-
+      duration: const Duration(milliseconds: 1300),
+    );
     _ambient = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 22),
-    )..repeat(reverse: true);
+      duration: const Duration(seconds: 36),
+    );
+  }
 
-    _shine = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 3200),
-    )..repeat();
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
 
-    // Headline "greets" the visitor in every language until they choose.
-    _ticker = Timer.periodic(const Duration(milliseconds: 2800), (_) {
-      if (!mounted || _userInteracted) return;
-      _tickIndex = (_tickIndex + 1) % kLanguageItems.length;
-      setState(() => _headlineCode = kLanguageItems[_tickIndex].code);
-    });
+    // Respect the system "reduce motion" setting.
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _enter.value = 1;
+    } else {
+      _enter.forward();
+      _ambient.repeat(reverse: true);
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => _revealSelected());
   }
 
   @override
   void dispose() {
-    _ticker?.cancel();
     _enter.dispose();
     _ambient.dispose();
-    _shine.dispose();
     _scroll.dispose();
     super.dispose();
   }
 
-  void _onSelectLanguage(String code) {
-    if (code == _selectedCode && _userInteracted) return;
+  /// If the preselected language is further down the list, bring it into view.
+  void _revealSelected() {
+    final index = kLanguageItems.indexWhere((e) => e.code == _selectedCode);
+    if (index < 4) return;
+    final ctx = _keys[_selectedCode]?.currentContext;
+    if (ctx == null) return;
+    Scrollable.ensureVisible(
+      ctx,
+      alignment: 0.3,
+      duration: Duration.zero,
+    );
+  }
+
+  void _onSelect(String code) {
+    if (code == _selectedCode) return;
     HapticFeedback.selectionClick();
-    setState(() {
-      _userInteracted = true;
-      _selectedCode = code;
-      _headlineCode = code;
-    });
+    setState(() => _selectedCode = code);
   }
 
   Future<void> _handleContinue() async {
     if (_busy) return;
-    HapticFeedback.mediumImpact();
+    HapticFeedback.lightImpact();
     setState(() => _busy = true);
     try {
       await ref.read(localeProvider.notifier).setLocale(Locale(_selectedCode));
@@ -323,84 +321,48 @@ class _SelectLanguageScreenState extends ConsumerState<SelectLanguageScreen>
     }
   }
 
-  // ───────────────────────────── helpers ─────────────────────────────
-
-  /// Fade + slide-up reveal driven by the entrance controller.
-  Widget _reveal({
-    required double begin,
-    required double end,
-    required Widget child,
-    double dy = 24,
-    double scaleFrom = 1.0,
-  }) {
-    final anim = _enter.drive(
-      CurveTween(curve: Interval(begin, end, curve: Curves.easeOutCubic)),
-    );
-    return AnimatedBuilder(
-      animation: anim,
-      child: child,
-      builder: (context, c) {
-        final v = anim.value;
-        return Opacity(
-          opacity: v.clamp(0.0, 1.0),
-          child: Transform.translate(
-            offset: Offset(0, dy * (1 - v)),
-            child: Transform.scale(
-              scale: scaleFrom + (1 - scaleFrom) * v,
-              child: c,
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   // ───────────────────────────── build ─────────────────────────────
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
     final selected = _itemOf(_selectedCode);
-    final headline = _itemOf(_headlineCode);
-    final bottomInset = MediaQuery.of(context).padding.bottom;
+
+    final sheetH = (size.height * 0.64).clamp(420.0, 600.0);
+    final heroH = size.height - sheetH + _sheetRadius;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light.copyWith(
         statusBarColor: Colors.transparent,
-        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarColor: AppColors.basalt,
+        systemNavigationBarIconBrightness: Brightness.light,
       ),
       child: Scaffold(
-        backgroundColor: _P.bg,
+        backgroundColor: AppColors.basalt,
         body: Stack(
-          fit: StackFit.expand,
           children: [
-            _buildBackground(),
-            SafeArea(
-              bottom: false,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 14, 24, 6),
-                    child: _reveal(
-                      begin: 0.04,
-                      end: 0.50,
-                      dy: 24,
-                      child: _buildHeadline(headline),
-                    ),
-                  ),
-                  Expanded(child: _buildGrid(bottomInset)),
-                ],
-              ),
-            ),
+            // Artwork
             Positioned(
-              left: 16,
-              right: 16,
-              bottom: 14 + bottomInset,
-              child: _reveal(
-                begin: 0.45,
-                end: 1.0,
-                dy: 70,
-                child: _buildDock(selected),
+              top: 0,
+              left: 0,
+              right: 0,
+              height: heroH,
+              child: _buildHero(),
+            ),
+
+            // Sheet
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: sheetH,
+              child: _Reveal(
+                parent: _enter,
+                begin: 0.20,
+                end: 0.80,
+                dy: 28,
+                child: _buildSheet(selected, bottomInset),
               ),
             ),
           ],
@@ -409,359 +371,267 @@ class _SelectLanguageScreenState extends ConsumerState<SelectLanguageScreen>
     );
   }
 
-  // ───────────────────────────── background ─────────────────────────────
+  // ───────────────────────────── hero ─────────────────────────────
 
-  Widget _buildBackground() {
-    return AnimatedBuilder(
-      animation: Listenable.merge([_ambient, _scroll]),
-      builder: (context, _) {
-        final t = Curves.easeInOut.transform(_ambient.value);
-        final scrollY = _scroll.hasClients
-            ? _scroll.offset.clamp(0.0, 400.0).toDouble()
-            : 0.0;
-
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            // Slow Ken-Burns drift + scroll parallax on the artwork.
-            Transform.translate(
-              offset: Offset(-16 * t, -scrollY * 0.06),
-              child: Transform.scale(
-                scale: 1.12 + 0.06 * t,
-                child: Image.asset(
-                  AssetPaths.selectLanguageBg,
-                  fit: BoxFit.cover,
-                  alignment: Alignment.center,
-                ),
-              ),
-            ),
-
-            // Depth gradient: keeps the photo visible at the top, deep at the bottom.
-            DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    _P.bg.withValues(alpha: 0.62),
-                    _P.bg.withValues(alpha: 0.78),
-                    _P.bg.withValues(alpha: 0.96),
-                  ],
-                  stops: const [0.0, 0.42, 1.0],
-                ),
-              ),
-            ),
-
-            // Drifting golden aurora.
-            Align(
-              alignment: Alignment(0.9 - 1.8 * t, -1.05),
-              child: Container(
-                width: 360,
-                height: 360,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      _P.gold.withValues(alpha: 0.20),
-                      _P.gold.withValues(alpha: 0.0),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  // ───────────────────────────── header ─────────────────────────────
-
-  /// Headline that morphs into the language currently being previewed.
-  Widget _buildHeadline(LanguageItem item) {
-    final copy = _kCopy[item.code] ?? _kCopy['en']!;
-
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 650),
-      switchInCurve: Curves.easeOutCubic,
-      switchOutCurve: Curves.easeInCubic,
-      transitionBuilder: (child, anim) {
-        final slide = Tween<Offset>(
-          begin: const Offset(0, 0.12),
-          end: Offset.zero,
-        ).animate(anim);
-        return FadeTransition(
-          opacity: anim,
-          child: SlideTransition(position: slide, child: child),
-        );
-      },
-      layoutBuilder: (current, previous) => Stack(
-        alignment: Alignment.topLeft,
-        children: [...previous, if (current != null) current],
-      ),
-      child: SizedBox(
-        key: ValueKey(item.code),
-        width: double.infinity,
-        child: Directionality(
-          textDirection: item.isRtl ? TextDirection.rtl : TextDirection.ltr,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
+  Widget _buildHero() {
+    return ClipRect(
+      child: AnimatedBuilder(
+        animation: Listenable.merge([_enter, _ambient]),
+        child: Image.asset(
+          AssetPaths.selectLanguageBg,
+          fit: BoxFit.cover,
+          alignment: const Alignment(0, 0.6), // keeps the pyramids framed
+          width: double.infinity,
+          height: double.infinity,
+        ),
+        builder: (context, child) {
+          final e = Curves.easeOutCubic.transform(_enter.value);
+          final t = Curves.easeInOut.transform(_ambient.value);
+          // Settles from 1.06 → 1.0 on entry, then drifts a few pixels.
+          final scale = (1.0 + 0.06 * (1 - e)) * (1.05 + 0.02 * t);
+          return Stack(
+            fit: StackFit.expand,
             children: [
-              Text(
-                copy.title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 30,
-                  height: 1.15,
-                  fontWeight: FontWeight.w800,
-                  // Letter-spacing breaks Arabic letter joining → keep 0.
-                  letterSpacing: item.isRtl ? 0 : -0.6,
-                  color: Colors.white,
+              Opacity(
+                opacity: e,
+                child: Transform.translate(
+                  offset: Offset(-6 * t, 0),
+                  child: Transform.scale(scale: scale, child: child),
                 ),
               ),
-              const SizedBox(height: 6),
-              Text(
-                copy.subtitle,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 14,
-                  height: 1.35,
-                  fontWeight: FontWeight.w400,
-                  color: Colors.white.withValues(alpha: 0.68),
+              // Soft top shade for the brand mark & status bar.
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      AppColors.basalt.withValues(alpha: 0.55),
+                      AppColors.basalt.withValues(alpha: 0.0),
+                    ],
+                    stops: const [0.0, 0.40],
+                  ),
                 ),
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ───────────────────────────── grid ─────────────────────────────
-
-  Widget _buildGrid(double bottomInset) {
-    return ShaderMask(
-      blendMode: BlendMode.dstIn,
-      shaderCallback: (rect) => const LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [Colors.transparent, Colors.black],
-        stops: [0.0, 0.035],
-      ).createShader(rect),
-      child: GridView.builder(
-        controller: _scroll,
-        physics: const BouncingScrollPhysics(),
-        padding: EdgeInsets.fromLTRB(20, 6, 20, 132 + bottomInset),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          mainAxisExtent: 116,
-        ),
-        itemCount: kLanguageItems.length,
-        itemBuilder: (context, index) {
-          final item = kLanguageItems[index];
-          final row = index ~/ 2;
-          final col = index % 2;
-          final begin = (0.14 + row * 0.07 + col * 0.03).clamp(0.0, 0.62);
-          final end = (begin + 0.36).clamp(0.0, 1.0);
-
-          return _reveal(
-            begin: begin,
-            end: end,
-            dy: 40,
-            scaleFrom: 0.9,
-            child: _LanguageTile(
-              item: item,
-              selected: item.code == _selectedCode,
-              onTap: () => _onSelectLanguage(item.code),
-            ),
           );
         },
       ),
     );
   }
 
-  // ───────────────────────────── dock ─────────────────────────────
+  // ───────────────────────────── sheet ─────────────────────────────
 
-  Widget _buildDock(LanguageItem selected) {
-    final copy = _kCopy[selected.code] ?? _kCopy['en']!;
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(32),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-        child: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: const Color(0xFF101823).withValues(alpha: 0.62),
-            borderRadius: BorderRadius.circular(32),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+  Widget _buildSheet(LanguageItem selected, double bottomInset) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.basalt,
+        borderRadius:
+            const BorderRadius.vertical(top: Radius.circular(_sheetRadius)),
+        border: Border(
+          top: BorderSide(color: AppColors.gold.withValues(alpha: 0.35)),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.35),
+            blurRadius: 30,
+            offset: const Offset(0, -8),
           ),
-          child: Row(
-            children: [
-              // Current selection summary
-              Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 380),
-                  switchInCurve: Curves.easeOutBack,
-                  switchOutCurve: Curves.easeIn,
-                  transitionBuilder: (child, anim) => FadeTransition(
-                    opacity: anim,
-                    child: ScaleTransition(
-                      scale: Tween<double>(begin: 0.85, end: 1).animate(anim),
-                      child: child,
+        ],
+      ),
+      child: Column(
+        children: [
+          const SizedBox(height: 14),
+          _Reveal(
+            parent: _enter,
+            begin: 0.35,
+            end: 0.70,
+            dy: 0,
+            child: const _Ornament(),
+          ),
+          const SizedBox(height: 14),
+          _Reveal(
+            parent: _enter,
+            begin: 0.35,
+            end: 0.75,
+            dy: 8,
+            child: _buildHeader(selected),
+          ),
+          const SizedBox(height: 6),
+          Expanded(child: _buildList()),
+          _buildFooter(selected, bottomInset),
+        ],
+      ),
+    );
+  }
+
+  /// Title + subtitle, following the selected language. Fixed height so the
+  /// list never shifts when the text changes.
+  Widget _buildHeader(LanguageItem item) {
+    final copy = _kCopy[item.code] ?? _kCopy['en']!;
+
+    return SizedBox(
+      height: 78,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 350),
+        switchInCurve: Curves.easeOut,
+        switchOutCurve: Curves.easeIn,
+        transitionBuilder: (child, anim) => FadeTransition(
+          opacity: anim,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 0.10),
+              end: Offset.zero,
+            ).animate(anim),
+            child: child,
+          ),
+        ),
+        layoutBuilder: (current, previous) => Stack(
+          alignment: Alignment.topCenter,
+          children: [...previous, if (current != null) current],
+        ),
+        child: Padding(
+          key: ValueKey(item.code),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: SizedBox(
+            width: double.infinity,
+            child: Directionality(
+              textDirection: item.isRtl ? TextDirection.rtl : TextDirection.ltr,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(
+                      copy.title,
+                      maxLines: 1,
+                      style: TextStyle(
+                        fontSize: 26,
+                        height: 1.2,
+                        fontWeight: FontWeight.w700,
+                        // Letter-spacing breaks Arabic letter joining.
+                        letterSpacing: item.isRtl ? 0 : -0.3,
+                        color: AppColors.papyrus,
+                      ),
                     ),
                   ),
-                  layoutBuilder: (current, previous) => Stack(
-                    alignment: Alignment.centerLeft,
-                    children: [...previous, if (current != null) current],
+                  const SizedBox(height: 6),
+                  Text(
+                    copy.subtitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14,
+                      height: 1.4,
+                      color: AppColors.mutedDark,
+                    ),
                   ),
-                  child: Row(
-                    key: ValueKey(selected.code),
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _FlagCircle(
-                        item: selected,
-                        size: 46,
-                        ring: true,
-                      ),
-                      const SizedBox(width: 12),
-                      Flexible(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              selected.nativeName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 15.5,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(height: 1),
-                            Text(
-                              selected.englishName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 11.5,
-                                color: Colors.white.withValues(alpha: 0.5),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                ],
               ),
-              const SizedBox(width: 10),
-              _buildContinueButton(copy.cont, selected.isRtl),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildContinueButton(String label, bool rtl) {
-    return _PressScale(
-      onTap: _handleContinue,
-      pressedScale: 0.95,
-      child: Container(
-        height: 52,
-        padding: const EdgeInsets.symmetric(horizontal: 22),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(26),
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [_P.goldLight, _P.gold, _P.goldDeep],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: _P.gold.withValues(alpha: 0.38),
-              blurRadius: 22,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(26),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              // Light sweep
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: AnimatedBuilder(
-                    animation: _shine,
-                    builder: (context, _) {
-                      final p = (_shine.value / 0.5).clamp(0.0, 1.0);
-                      final slide = -1.0 + 2.0 * Curves.easeInOut.transform(p);
-                      return DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                            colors: [
-                              Colors.white.withValues(alpha: 0.0),
-                              Colors.white.withValues(alpha: 0.38),
-                              Colors.white.withValues(alpha: 0.0),
-                            ],
-                            stops: const [0.35, 0.5, 0.65],
-                            transform: _SlideGradient(slide),
-                          ),
-                        ),
-                      );
-                    },
+  Widget _buildList() {
+    return ShaderMask(
+      blendMode: BlendMode.dstIn,
+      shaderCallback: (rect) => const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          Colors.transparent,
+          Colors.black,
+          Colors.black,
+          Colors.transparent,
+        ],
+        stops: [0.0, 0.04, 0.94, 1.0],
+      ).createShader(rect),
+      child: SingleChildScrollView(
+        controller: _scroll,
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
+        child: Column(
+          children: [
+            for (var i = 0; i < kLanguageItems.length; i++)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _Reveal(
+                  parent: _enter,
+                  // Gentle stagger: ~25ms per row.
+                  begin: (0.40 + i * 0.025).clamp(0.0, 0.75),
+                  end: (0.40 + i * 0.025 + 0.30).clamp(0.0, 1.0),
+                  dy: 10,
+                  child: _LanguageRow(
+                    key: _keys[kLanguageItems[i].code],
+                    item: kLanguageItems[i],
+                    selected: kLanguageItems[i].code == _selectedCode,
+                    onTap: () => _onSelect(kLanguageItems[i].code),
                   ),
                 ),
               ),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 260),
-                child: _busy
-                    ? const SizedBox(
-                        key: ValueKey('busy'),
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.6,
-                          valueColor: AlwaysStoppedAnimation(_P.ink),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFooter(LanguageItem selected, double bottomInset) {
+    final copy = _kCopy[selected.code] ?? _kCopy['en']!;
+    final rtl = selected.isRtl;
+
+    return _Reveal(
+      parent: _enter,
+      begin: 0.55,
+      end: 1.0,
+      dy: 12,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(20, 6, 20, 16 + bottomInset),
+        child: FilledButton(
+          onPressed: _handleContinue,
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.gold,
+            foregroundColor: AppColors.basalt,
+            minimumSize: const Size.fromHeight(56),
+            shape: const StadiumBorder(),
+            elevation: 0,
+          ),
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 220),
+            child: _busy
+                ? const SizedBox(
+                    key: ValueKey('busy'),
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.4,
+                      valueColor: AlwaysStoppedAnimation(AppColors.basalt),
+                    ),
+                  )
+                : Row(
+                    key: ValueKey(selected.code),
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        copy.cont,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: rtl ? 0 : 0.2,
                         ),
-                      )
-                    : Row(
-                        key: ValueKey(label),
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            label,
-                            style: TextStyle(
-                              fontSize: 16.5,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: rtl ? 0 : 0.3,
-                              color: _P.ink,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Icon(
-                            rtl
-                                ? Icons.arrow_back_rounded
-                                : Icons.arrow_forward_rounded,
-                            size: 20,
-                            color: _P.ink,
-                          ),
-                        ],
                       ),
-              ),
-            ],
+                      const SizedBox(width: 8),
+                      Icon(
+                        rtl
+                            ? Icons.arrow_back_rounded
+                            : Icons.arrow_forward_rounded,
+                        size: 20,
+                      ),
+                    ],
+                  ),
           ),
         ),
       ),
@@ -770,11 +640,75 @@ class _SelectLanguageScreenState extends ConsumerState<SelectLanguageScreen>
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  LANGUAGE TILE
+//  PIECES
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _LanguageTile extends StatelessWidget {
-  const _LanguageTile({
+/// Fade + small upward drift, driven by a window of the entrance controller.
+class _Reveal extends StatelessWidget {
+  const _Reveal({
+    required this.parent,
+    required this.begin,
+    required this.end,
+    required this.child,
+    this.dy = 12,
+  });
+
+  final Animation<double> parent;
+  final double begin;
+  final double end;
+  final double dy;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final anim = parent.drive(
+      CurveTween(curve: Interval(begin, end, curve: Curves.easeOutCubic)),
+    );
+    return AnimatedBuilder(
+      animation: anim,
+      child: child,
+      builder: (context, c) => Opacity(
+        opacity: anim.value.clamp(0.0, 1.0),
+        child: Transform.translate(
+          offset: Offset(0, dy * (1 - anim.value)),
+          child: c,
+        ),
+      ),
+    );
+  }
+}
+
+
+/// Thin gold rule with a centred diamond — a quiet Egyptian-inspired accent.
+class _Ornament extends StatelessWidget {
+  const _Ornament();
+
+  @override
+  Widget build(BuildContext context) {
+    final line = Container(
+      width: 34,
+      height: 1,
+      color: AppColors.gold.withValues(alpha: 0.55),
+    );
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        line,
+        const SizedBox(width: 10),
+        Transform.rotate(
+          angle: math.pi / 4,
+          child: Container(width: 6, height: 6, color: AppColors.gold),
+        ),
+        const SizedBox(width: 10),
+        line,
+      ],
+    );
+  }
+}
+
+class _LanguageRow extends StatelessWidget {
+  const _LanguageRow({
+    super.key,
     required this.item,
     required this.selected,
     required this.onTap,
@@ -786,86 +720,68 @@ class _LanguageTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _PressScale(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeOutCubic,
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(22),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: selected
-                ? [
-                    _P.gold.withValues(alpha: 0.22),
-                    _P.gold.withValues(alpha: 0.06),
-                  ]
-                : [
-                    Colors.white.withValues(alpha: 0.075),
-                    Colors.white.withValues(alpha: 0.03),
-                  ],
-          ),
-          border: Border.all(
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: '${item.nativeName}, ${item.englishName}',
+      child: _PressScale(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutCubic,
+          height: 60,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
             color: selected
-                ? _P.gold.withValues(alpha: 0.95)
-                : Colors.white.withValues(alpha: 0.10),
-            width: selected ? 1.4 : 1.0,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: _P.gold.withValues(alpha: selected ? 0.22 : 0.0),
-              blurRadius: 24,
-              offset: const Offset(0, 8),
+                ? AppColors.gold.withValues(alpha: 0.10)
+                : Colors.white.withValues(alpha: 0.035),
+            border: Border.all(
+              color: selected
+                  ? AppColors.gold.withValues(alpha: 0.70)
+                  : Colors.white.withValues(alpha: 0.07),
+              width: selected ? 1.3 : 1.0,
             ),
-          ],
-        ),
-        child: Directionality(
-          textDirection: item.isRtl ? TextDirection.rtl : TextDirection.ltr,
-          child: Stack(
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _FlagCircle(item: item, size: 40, ring: selected),
-                  Column(
+          ),
+          child: Directionality(
+            textDirection: item.isRtl ? TextDirection.rtl : TextDirection.ltr,
+            child: Row(
+              children: [
+                _Flag(asset: item.flagAsset, code: item.code),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         item.nativeName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 16,
-                          fontWeight:
-                              selected ? FontWeight.w800 : FontWeight.w600,
-                          color: Colors.white,
+                          height: 1.25,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.papyrus,
                         ),
                       ),
-                      const SizedBox(height: 2),
                       AnimatedDefaultTextStyle(
                         duration: const Duration(milliseconds: 300),
                         style: TextStyle(
                           fontSize: 12,
+                          height: 1.3,
                           color: selected
-                              ? _P.gold
-                              : Colors.white.withValues(alpha: 0.5),
+                              ? AppColors.gold
+                              : AppColors.mutedDark,
                         ),
                         child: Text(item.englishName),
                       ),
                     ],
                   ),
-                ],
-              ),
-              PositionedDirectional(
-                top: 0,
-                end: 0,
-                child: _CheckBadge(selected: selected),
-              ),
-            ],
+                ),
+                _RadioDot(selected: selected),
+              ],
+            ),
           ),
         ),
       ),
@@ -873,72 +789,34 @@ class _LanguageTile extends StatelessWidget {
   }
 }
 
-class _CheckBadge extends StatelessWidget {
-  const _CheckBadge({required this.selected});
-  final bool selected;
+class _Flag extends StatelessWidget {
+  const _Flag({required this.asset, required this.code});
+
+  final String asset;
+  final String code;
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOutCubic,
-      width: 22,
-      height: 22,
+    return Container(
+      width: 36,
+      height: 36,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: selected ? _P.gold : Colors.transparent,
-        border: Border.all(
-          color: selected ? _P.gold : Colors.white.withValues(alpha: 0.28),
-          width: 1.5,
-        ),
-      ),
-      child: AnimatedScale(
-        scale: selected ? 1 : 0,
-        duration: const Duration(milliseconds: 380),
-        curve: Curves.easeOutBack,
-        child: const Icon(Icons.check_rounded, size: 14, color: _P.ink),
-      ),
-    );
-  }
-}
-
-class _FlagCircle extends StatelessWidget {
-  const _FlagCircle({
-    required this.item,
-    required this.size,
-    required this.ring,
-  });
-
-  final LanguageItem item;
-  final double size;
-  final bool ring;
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      width: size + 6,
-      height: size + 6,
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: ring ? _P.gold : Colors.white.withValues(alpha: 0.14),
-          width: ring ? 1.6 : 1.0,
-        ),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
       ),
       child: ClipOval(
         child: Image.asset(
-          item.flagAsset,
+          asset,
           fit: BoxFit.cover,
+          cacheWidth: 108,
           errorBuilder: (_, __, ___) => Container(
-            color: Colors.white.withValues(alpha: 0.1),
+            color: Colors.white.withValues(alpha: 0.08),
             alignment: Alignment.center,
             child: Text(
-              item.code.toUpperCase(),
+              code.toUpperCase(),
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -949,21 +827,50 @@ class _FlagCircle extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  UTILITIES
-// ─────────────────────────────────────────────────────────────────────────────
+class _RadioDot extends StatelessWidget {
+  const _RadioDot({required this.selected});
+  final bool selected;
 
-/// Tactile press feedback (scale down on touch, spring back on release).
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+      width: 22,
+      height: 22,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: selected
+              ? AppColors.gold
+              : Colors.white.withValues(alpha: 0.28),
+          width: 1.5,
+        ),
+      ),
+      child: AnimatedScale(
+        scale: selected ? 1 : 0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+        child: Container(
+          width: 10,
+          height: 10,
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.gold,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Soft press feedback (tiny scale down on touch).
 class _PressScale extends StatefulWidget {
-  const _PressScale({
-    required this.child,
-    required this.onTap,
-    this.pressedScale = 0.96,
-  });
+  const _PressScale({required this.child, required this.onTap});
 
   final Widget child;
   final VoidCallback onTap;
-  final double pressedScale;
 
   @override
   State<_PressScale> createState() => _PressScaleState();
@@ -985,22 +892,11 @@ class _PressScaleState extends State<_PressScale> {
       onTapCancel: () => _set(false),
       onTap: widget.onTap,
       child: AnimatedScale(
-        scale: _pressed ? widget.pressedScale : 1.0,
-        duration: Duration(milliseconds: _pressed ? 110 : 280),
-        curve: _pressed ? Curves.easeOut : Curves.easeOutBack,
+        scale: _pressed ? 0.985 : 1.0,
+        duration: const Duration(milliseconds: 140),
+        curve: Curves.easeOut,
         child: widget.child,
       ),
     );
-  }
-}
-
-/// Slides a gradient horizontally (used for the button light sweep).
-class _SlideGradient extends GradientTransform {
-  const _SlideGradient(this.percent);
-  final double percent;
-
-  @override
-  Matrix4? transform(Rect bounds, {TextDirection? textDirection}) {
-    return Matrix4.translationValues(bounds.width * percent, 0.0, 0.0);
   }
 }
