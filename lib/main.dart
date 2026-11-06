@@ -22,14 +22,19 @@ import 'features/zones/presentation/widgets/zone_selector_pill.dart';
 
 void main() async {
   runZonedGuarded(() async {
+    debugPrint('🚀 [HanaMasr Step 1/5] Initializing Flutter bindings...');
     WidgetsFlutterBinding.ensureInitialized();
 
-    // Allow runtime fetching so Cairo & Plus Jakarta Sans fonts load smoothly
+    debugPrint('🔤 [HanaMasr Step 2/5] Enabling GoogleFonts runtime fetching...');
     GoogleFonts.config.allowRuntimeFetching = true;
 
+    debugPrint('🎨 [HanaMasr Step 3/5] Loading ThemeController...');
     final themeController = await ThemeController.load();
+
+    debugPrint('💾 [HanaMasr Step 4/5] Initializing SharedPreferences...');
     final prefs = await SharedPreferences.getInstance();
 
+    debugPrint('📱 [HanaMasr Step 5/5] Launching runApp with DevicePreview & ProviderScope...');
     runApp(
       ProviderScope(
         overrides: [
@@ -45,7 +50,7 @@ void main() async {
       ),
     );
   }, (error, stack) {
-    debugPrint('Uncaught Zone Error: $error');
+    debugPrint('❌ [HanaMasr CRITICAL ERROR] runZonedGuarded caught: $error');
     debugPrint('$stack');
   });
 }
@@ -57,6 +62,7 @@ class HanaMasrApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('🏗️ [HanaMasr App] Building MaterialApp (locale: ar, DevicePreview active)...');
     return ListenableBuilder(
       listenable: themeController,
       builder: (context, _) {
@@ -100,8 +106,10 @@ class _AppRootState extends State<_AppRoot> {
   Widget build(BuildContext context) {
     // 1. Pharaonic 3D Splash Screen with background location warmup
     if (!_splashFinished) {
+      debugPrint('🏺 [HanaMasr Navigator] Stage 1: Rendering SplashScreen...');
       return SplashScreen(
         onInitialized: () {
+          debugPrint('✅ [HanaMasr Navigator] Splash finished! Transitioning to Stage 2: ZoneVerificationScreen...');
           setState(() {
             _splashFinished = true;
           });
@@ -111,8 +119,10 @@ class _AppRootState extends State<_AppRoot> {
 
     // 2. Zone & Location Verification Screen (GPS coords, assigned zone, and % confidence)
     if (!_zoneConfirmed) {
+      debugPrint('📍 [HanaMasr Navigator] Stage 2: Rendering ZoneVerificationScreen...');
       return ZoneVerificationScreen(
         onConfirmed: () {
+          debugPrint('🎯 [HanaMasr Navigator] User confirmed zone! Transitioning to Stage 3: Main DemoScreen...');
           setState(() {
             _zoneConfirmed = true;
           });
@@ -121,6 +131,7 @@ class _AppRootState extends State<_AppRoot> {
     }
 
     // 3. Main Application Experience
+    debugPrint('🌟 [HanaMasr Navigator] Stage 3: Rendering Main DemoScreen...');
     return const _DemoScreen();
   }
 }

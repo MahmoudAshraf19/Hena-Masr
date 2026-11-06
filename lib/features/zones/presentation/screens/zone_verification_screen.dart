@@ -35,6 +35,8 @@ class ZoneVerificationScreen extends ConsumerWidget {
     final confidenceLabel = match?.confidenceLabelAr ??
         (isDetecting ? 'جارِ تحديد الموقع...' : 'منطقة قياسية');
 
+    debugPrint('📋 [ZoneVerificationScreen] Rendering: Zone=${match?.nameAr ?? "None"}, Conf=$confidencePct%, Pos=(${pos?.latitude}, ${pos?.longitude}), Status=${zoneState?.status}');
+
     return Scaffold(
       backgroundColor: const Color(0xFF131A22), // Deep basalt background
       appBar: AppBar(

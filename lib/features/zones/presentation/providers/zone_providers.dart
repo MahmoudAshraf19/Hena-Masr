@@ -65,6 +65,7 @@ class CurrentZoneController extends AsyncNotifier<ZoneState> {
 
   @override
   Future<ZoneState> build() async {
+    debugPrint('🏛️ [Zones Engine] CurrentZoneController.build(): loading catalog & saved zone...');
     final catalog = await ref.watch(zoneCatalogProvider.future);
     final resolver = _resolver = ZoneResolver(catalog);
     final prefs = ref.read(sharedPreferencesProvider);
@@ -72,8 +73,10 @@ class CurrentZoneController extends AsyncNotifier<ZoneState> {
     final mode = prefs.getString(StorageKeys.zoneMode);
     final savedId = prefs.getString(StorageKeys.zoneId);
     final saved = savedId == null ? null : resolver.matchFromId(savedId);
+    debugPrint('🏛️ [Zones Engine] Catalog loaded. Stored: mode=$mode, savedZoneId=$savedId, matchedName=${saved?.nameAr}');
 
     if (mode == 'manual' && saved != null) {
+      debugPrint('🏛️ [Zones Engine] Manual zone mode active. Using: ${saved.nameAr}');
       return ZoneState(
         status: ZoneStatus.ready,
         match: saved,
@@ -93,10 +96,17 @@ class CurrentZoneController extends AsyncNotifier<ZoneState> {
   /// Re-detect the zone from the device location (no-op in manual mode).
   Future<void> detect() async {
     final current = state.value;
-    if (current?.source == ZoneSource.manual) return;
+    if (current?.source == ZoneSource.manual) {
+      debugPrint('🏛️ [Zones Engine] detect() skipped: zone is in manual mode.');
+      return;
+    }
     final resolver = _resolver;
-    if (resolver == null) return;
+    if (resolver == null) {
+      debugPrint('🏛️ [Zones Engine] detect() waiting: resolver not yet initialized.');
+      return;
+    }
 
+    debugPrint('🏛️ [Zones Engine] detect() started: requesting location from LocationService...');
     state = AsyncData(ZoneState(
       status: ZoneStatus.detecting,
       match: current?.match,
@@ -106,6 +116,7 @@ class CurrentZoneController extends AsyncNotifier<ZoneState> {
     final result = await ref.read(locationServiceProvider).getCurrentPosition();
     await result.when(
       onSuccess: (pos) async {
+        debugPrint('🏛️ [Zones Engine] GPS Fix received (Lat: ${pos.latitude}, Lng: ${pos.longitude}, Acc: ±${pos.accuracy}m). Matching against Egypt zones polygons...');
         var match = resolver.resolve(
           lat: pos.latitude,
           lng: pos.longitude,
@@ -113,14 +124,17 @@ class CurrentZoneController extends AsyncNotifier<ZoneState> {
           previous: current?.match,
         );
         if (match == null) {
+          debugPrint('⚠️ [Zones Engine] Point (${pos.latitude}, ${pos.longitude}) is outside Egypt polygons.');
           state = AsyncData(ZoneState(
             status: ZoneStatus.outsideEgypt,
             match: current?.match,
           ));
           return;
         }
+        debugPrint('✅ [Zones Engine] Match SUCCESS: Gov=${match.governorate.nameAr}, District=${match.district?.nameAr ?? "None"}, Highlight=${match.highlight?.nameAr ?? "None"}, Confidence=${match.confidencePercentage}%');
         if (match.district != null) {
           match = await _withLocality(match, pos.latitude, pos.longitude);
+          debugPrint('🏘️ [Zones Engine] Level-3 Locality: ${match.locality?.nameAr ?? "None"}');
         }
         final prefs = ref.read(sharedPreferencesProvider);
         await prefs.setString(StorageKeys.zoneMode, 'auto');
@@ -131,8 +145,10 @@ class CurrentZoneController extends AsyncNotifier<ZoneState> {
           source: ZoneSource.gps,
           rawPosition: pos,
         ));
+        debugPrint('🎯 [Zones Engine] ZoneState updated to READY! Ready to display in ZoneVerificationScreen.');
       },
       onFailure: (failure) async {
+        debugPrint('⚠️ [Zones Engine] Location detection failure: $failure');
         state = AsyncData(ZoneState(
           status: ZoneStatus.locationIssue,
           match: current?.match,

@@ -33,9 +33,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   void initState() {
     super.initState();
+    debugPrint('🏺 [HanaMasr Splash] Initializing (duration: ${widget.minimumDuration.inMilliseconds}ms)...');
 
     // Initiate user location detection and zone resolution right from app start
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      debugPrint('📍 [HanaMasr Splash] PostFrameCallback: Triggering location detection & zone warmup...');
       ref.read(currentZoneProvider.notifier).detect();
     });
 
@@ -55,6 +57,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     );
 
     _progressController.forward().then((_) {
+      debugPrint('🏺 [HanaMasr Splash] Animation complete. Triggering onInitialized callback...');
       if (mounted) {
         // Restore system UI overlays
         if (!kIsWeb) {
