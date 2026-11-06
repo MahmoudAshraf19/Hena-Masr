@@ -34,16 +34,16 @@ class SplashLoadingBar extends StatelessWidget {
                 borderRadius: BorderRadius.circular(height),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFD4A24C).withValues(alpha: 0.7),
-                    blurRadius: 8,
+                    color: const Color(0xFFFFC107).withValues(alpha: 0.75),
+                    blurRadius: 10,
                     spreadRadius: 1,
                   ),
                 ],
                 gradient: const LinearGradient(
                   colors: [
-                    Color(0xFF8C6422),
-                    Color(0xFFD4A24C),
-                    Color(0xFFFBE49D),
+                    Color(0xFFC67D00),
+                    Color(0xFFFFC107),
+                    Color(0xFFFFF59D),
                   ],
                 ),
               ),

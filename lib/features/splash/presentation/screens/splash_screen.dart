@@ -81,12 +81,12 @@ class _SplashScreenState extends State<SplashScreen>
             alignment: Alignment.center,
           ),
 
-          // 2. Subtle Dark Gradient Overlay at the bottom for high contrast
+          // 2. Cinematic Gradient Overlay at the bottom for high contrast against desert sand
           Positioned(
             left: 0,
             right: 0,
             bottom: 0,
-            height: 220,
+            height: 250,
             child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -94,8 +94,10 @@ class _SplashScreenState extends State<SplashScreen>
                   end: Alignment.bottomCenter,
                   colors: [
                     Colors.transparent,
-                    Colors.black.withValues(alpha: 0.7),
+                    Colors.black.withValues(alpha: 0.40),
+                    Colors.black.withValues(alpha: 0.85),
                   ],
+                  stops: const [0.0, 0.45, 1.0],
                 ),
               ),
             ),
@@ -105,18 +107,18 @@ class _SplashScreenState extends State<SplashScreen>
           Positioned(
             left: 0,
             right: 0,
-            bottom: 36 + bottomPadding,
+            bottom: 38 + bottomPadding,
             child: AnimatedBuilder(
               animation: _progressAnimation,
               builder: (context, _) {
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Spinning Pharaonic Ankh with glow
+                    // Spinning Pharaonic Ankh with metallic luster, aura, and drop-shadow
                     const AnkhLoader(
-                      size: 46,
-                      color: Color(0xFFD4A24C),
-                      dotColor: Color(0xFF2BA39B),
+                      size: 54,
+                      color: Color(0xFFFFD700), // Royal Egyptian 24K Gold
+                      dotColor: Color(0xFF00E5FF), // Radiant Faience Turquoise
                       enableGlow: true,
                     ),
                     const SizedBox(height: 14),
