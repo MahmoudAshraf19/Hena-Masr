@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +8,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hena_masr/core/constants/asset_paths.dart';
 import 'package:hena_masr/core/localization/locale_controller.dart';
 import 'package:hena_masr/core/localization/supported_locales.dart';
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  DATA
+// ─────────────────────────────────────────────────────────────────────────────
 
 /// Data model representing a supported language option.
 class LanguageItem {
@@ -118,6 +125,113 @@ const List<LanguageItem> kLanguageItems = [
   ),
 ];
 
+/// Screen copy that morphs live to the language being previewed/selected.
+class _LangCopy {
+  final String title;
+  final String subtitle;
+  final String cont;
+  const _LangCopy(this.title, this.subtitle, this.cont);
+}
+
+const Map<String, _LangCopy> _kCopy = {
+  'en': _LangCopy(
+    'Choose your language',
+    'Select your preferred language to explore Egypt your way.',
+    'Continue',
+  ),
+  'ar': _LangCopy(
+    'اختر لغتك',
+    'اختر لغتك المفضلة لتستكشف مصر بطريقتك الخاصة.',
+    'متابعة',
+  ),
+  'fr': _LangCopy(
+    'Choisissez votre langue',
+    'Sélectionnez votre langue préférée pour explorer l’Égypte à votre façon.',
+    'Continuer',
+  ),
+  'de': _LangCopy(
+    'Wähle deine Sprache',
+    'Wähle deine bevorzugte Sprache, um Ägypten auf deine Art zu entdecken.',
+    'Weiter',
+  ),
+  'es': _LangCopy(
+    'Elige tu idioma',
+    'Selecciona tu idioma preferido para explorar Egipto a tu manera.',
+    'Continuar',
+  ),
+  'it': _LangCopy(
+    'Scegli la tua lingua',
+    'Seleziona la lingua che preferisci per esplorare l’Egitto a modo tuo.',
+    'Continua',
+  ),
+  'ru': _LangCopy(
+    'Выберите язык',
+    'Выберите предпочтительный язык, чтобы открыть Египет по-своему.',
+    'Продолжить',
+  ),
+  'zh': _LangCopy(
+    '选择您的语言',
+    '选择您偏好的语言,以您自己的方式探索埃及。',
+    '继续',
+  ),
+  'ja': _LangCopy(
+    '言語を選択',
+    'お好みの言語を選んで、あなたらしくエジプトを探索しましょう。',
+    '続ける',
+  ),
+  'pl': _LangCopy(
+    'Wybierz swój język',
+    'Wybierz preferowany język, aby odkrywać Egipt po swojemu.',
+    'Kontynuuj',
+  ),
+  'nl': _LangCopy(
+    'Kies je taal',
+    'Kies je voorkeurstaal om Egypte op jouw manier te ontdekken.',
+    'Doorgaan',
+  ),
+  'uk': _LangCopy(
+    'Оберіть мову',
+    'Оберіть бажану мову, щоб відкрити Єгипет по-своєму.',
+    'Продовжити',
+  ),
+  'cs': _LangCopy(
+    'Vyberte jazyk',
+    'Vyberte preferovaný jazyk a objevte Egypt po svém.',
+    'Pokračovat',
+  ),
+  'tr': _LangCopy(
+    'Dilinizi seçin',
+    'Mısır’ı kendi tarzınızda keşfetmek için tercih ettiğiniz dili seçin.',
+    'Devam',
+  ),
+  'sr': _LangCopy(
+    'Изаберите језик',
+    'Изаберите жељени језик да истражите Египат на свој начин.',
+    'Настави',
+  ),
+};
+
+LanguageItem _itemOf(String code) => kLanguageItems.firstWhere(
+      (e) => e.code == code,
+      orElse: () => kLanguageItems.first,
+    );
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  PALETTE
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _P {
+  static const bg = Color(0xFF080D14);
+  static const gold = Color(0xFFE9C46A);
+  static const goldLight = Color(0xFFF7DE98);
+  static const goldDeep = Color(0xFFC9973A);
+  static const ink = Color(0xFF17120A);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  SCREEN
+// ─────────────────────────────────────────────────────────────────────────────
+
 class SelectLanguageScreen extends ConsumerStatefulWidget {
   const SelectLanguageScreen({
     super.key,
@@ -127,547 +241,864 @@ class SelectLanguageScreen extends ConsumerStatefulWidget {
   final VoidCallback? onContinue;
 
   @override
-  ConsumerState<SelectLanguageScreen> createState() => _SelectLanguageScreenState();
+  ConsumerState<SelectLanguageScreen> createState() =>
+      _SelectLanguageScreenState();
 }
 
 class _SelectLanguageScreenState extends ConsumerState<SelectLanguageScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late String _selectedCode;
-  late final AnimationController _staggerController;
-  final ScrollController _scrollController = ScrollController();
+
+  /// Language used for the headline. Cycles automatically until the user
+  /// interacts, then follows the selection.
+  String _headlineCode = 'en';
+  bool _userInteracted = false;
+  bool _busy = false;
+
+  late final AnimationController _enter; // one-shot entrance choreography
+  late final AnimationController _ambient; // slow background motion
+  late final AnimationController _shine; // button light sweep
+  final ScrollController _scroll = ScrollController();
+
+  Timer? _ticker;
+  int _tickIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    // Default selected language is English as requested
     _selectedCode = 'en';
 
-    _staggerController = AnimationController(
+    _enter = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 900),
+      duration: const Duration(milliseconds: 1500),
     )..forward();
+
+    _ambient = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 22),
+    )..repeat(reverse: true);
+
+    _shine = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 3200),
+    )..repeat();
+
+    // Headline "greets" the visitor in every language until they choose.
+    _ticker = Timer.periodic(const Duration(milliseconds: 2800), (_) {
+      if (!mounted || _userInteracted) return;
+      _tickIndex = (_tickIndex + 1) % kLanguageItems.length;
+      setState(() => _headlineCode = kLanguageItems[_tickIndex].code);
+    });
   }
 
   @override
   void dispose() {
-    _staggerController.dispose();
-    _scrollController.dispose();
+    _ticker?.cancel();
+    _enter.dispose();
+    _ambient.dispose();
+    _shine.dispose();
+    _scroll.dispose();
     super.dispose();
   }
 
   void _onSelectLanguage(String code) {
+    if (code == _selectedCode && _userInteracted) return;
     HapticFeedback.selectionClick();
     setState(() {
+      _userInteracted = true;
       _selectedCode = code;
+      _headlineCode = code;
     });
   }
 
   Future<void> _handleContinue() async {
+    if (_busy) return;
     HapticFeedback.mediumImpact();
-    // Persist chosen language in Riverpod LocaleController
-    await ref.read(localeProvider.notifier).setLocale(Locale(_selectedCode));
-
-    if (widget.onContinue != null) {
-      widget.onContinue!();
+    setState(() => _busy = true);
+    try {
+      await ref.read(localeProvider.notifier).setLocale(Locale(_selectedCode));
+      widget.onContinue?.call();
+    } finally {
+      if (mounted) setState(() => _busy = false);
     }
   }
 
+  // ───────────────────────────── helpers ─────────────────────────────
+
+  /// Fade + slide-up reveal driven by the entrance controller.
+  Widget _reveal({
+    required double begin,
+    required double end,
+    required Widget child,
+    double dy = 24,
+    double scaleFrom = 1.0,
+  }) {
+    final anim = _enter.drive(
+      CurveTween(curve: Interval(begin, end, curve: Curves.easeOutCubic)),
+    );
+    return AnimatedBuilder(
+      animation: anim,
+      child: child,
+      builder: (context, c) {
+        final v = anim.value;
+        return Opacity(
+          opacity: v.clamp(0.0, 1.0),
+          child: Transform.translate(
+            offset: Offset(0, dy * (1 - v)),
+            child: Transform.scale(
+              scale: scaleFrom + (1 - scaleFrom) * v,
+              child: c,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ───────────────────────────── build ─────────────────────────────
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0E1520),
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          // 1. Photographic Artwork Background
-          Image.asset(
-            AssetPaths.selectLanguageBg,
-            fit: BoxFit.cover,
-            width: double.infinity,
-            height: double.infinity,
-            alignment: Alignment.center,
-          ),
+    final selected = _itemOf(_selectedCode);
+    final headline = _itemOf(_headlineCode);
+    final bottomInset = MediaQuery.of(context).padding.bottom;
 
-          // 2. Dual Gradient Overlays for High Legibility
-          // Top subtle vignette
-          Positioned(
-            left: 0,
-            right: 0,
-            top: 0,
-            height: 180,
-            child: DecoratedBox(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: Colors.transparent,
+      ),
+      child: Scaffold(
+        backgroundColor: _P.bg,
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            _buildBackground(),
+            SafeArea(
+              bottom: false,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 10, 24, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _reveal(
+                          begin: 0.0,
+                          end: 0.4,
+                          child: _buildTopBar(),
+                        ),
+                        const SizedBox(height: 26),
+                        _reveal(
+                          begin: 0.08,
+                          end: 0.55,
+                          dy: 30,
+                          child: _buildHeadline(headline),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(child: _buildGrid(bottomInset)),
+                ],
+              ),
+            ),
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: 14 + bottomInset,
+              child: _reveal(
+                begin: 0.45,
+                end: 1.0,
+                dy: 70,
+                child: _buildDock(selected),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ───────────────────────────── background ─────────────────────────────
+
+  Widget _buildBackground() {
+    return AnimatedBuilder(
+      animation: Listenable.merge([_ambient, _scroll]),
+      builder: (context, _) {
+        final t = Curves.easeInOut.transform(_ambient.value);
+        final scrollY = _scroll.hasClients
+            ? _scroll.offset.clamp(0.0, 400.0).toDouble()
+            : 0.0;
+
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            // Slow Ken-Burns drift + scroll parallax on the artwork.
+            Transform.translate(
+              offset: Offset(-16 * t, -scrollY * 0.06),
+              child: Transform.scale(
+                scale: 1.12 + 0.06 * t,
+                child: Image.asset(
+                  AssetPaths.selectLanguageBg,
+                  fit: BoxFit.cover,
+                  alignment: Alignment.center,
+                ),
+              ),
+            ),
+
+            // Depth gradient: keeps the photo visible at the top, deep at the bottom.
+            DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withValues(alpha: 0.70),
-                    Colors.transparent,
+                    _P.bg.withValues(alpha: 0.62),
+                    _P.bg.withValues(alpha: 0.78),
+                    _P.bg.withValues(alpha: 0.96),
                   ],
+                  stops: const [0.0, 0.42, 1.0],
                 ),
               ),
             ),
-          ),
-          // Bottom deep vignette covering behind the continue button
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: 280,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    const Color(0xFF0B121C).withValues(alpha: 0.85),
-                    const Color(0xFF080D15).withValues(alpha: 0.98),
-                  ],
-                  stops: const [0.0, 0.45, 1.0],
-                ),
-              ),
-            ),
-          ),
 
-          // 3. Foreground Content with Scrollable List
-          SafeArea(
+            // Drifting golden aurora.
+            Align(
+              alignment: Alignment(0.9 - 1.8 * t, -1.05),
+              child: Container(
+                width: 360,
+                height: 360,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      _P.gold.withValues(alpha: 0.20),
+                      _P.gold.withValues(alpha: 0.0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // ───────────────────────────── header ─────────────────────────────
+
+  Widget _buildTopBar() {
+    return Row(
+      children: [
+        Container(
+          width: 38,
+          height: 38,
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [_P.goldLight, _P.gold, _P.goldDeep],
+            ),
+          ),
+          child: const Icon(
+            Icons.location_on_rounded,
+            size: 21,
+            color: _P.ink,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'HENA MASR',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 2.6,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'Explore Egypt · Your Way',
+              style: TextStyle(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w400,
+                letterSpacing: 0.6,
+                color: Colors.white.withValues(alpha: 0.55),
+              ),
+            ),
+          ],
+        ),
+        const Spacer(),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.language_rounded, size: 15, color: _P.gold),
+              const SizedBox(width: 6),
+              Text(
+                '${kLanguageItems.length}',
+                style: const TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Headline that morphs into the language currently being previewed.
+  Widget _buildHeadline(LanguageItem item) {
+    final copy = _kCopy[item.code] ?? _kCopy['en']!;
+
+    return SizedBox(
+      height: 168,
+      width: double.infinity,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 650),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
+        transitionBuilder: (child, anim) {
+          final slide = Tween<Offset>(
+            begin: const Offset(0, 0.12),
+            end: Offset.zero,
+          ).animate(anim);
+          return FadeTransition(
+            opacity: anim,
+            child: SlideTransition(position: slide, child: child),
+          );
+        },
+        layoutBuilder: (current, previous) => Stack(
+          alignment: Alignment.topLeft,
+          children: [...previous, if (current != null) current],
+        ),
+        child: SizedBox(
+          key: ValueKey(item.code),
+          width: double.infinity,
+          child: Directionality(
+            textDirection: item.isRtl ? TextDirection.rtl : TextDirection.ltr,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header (Logo, Headline, Subtitle, Divider)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
+                Container(
+                  width: 36,
+                  height: 3,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(2),
+                    gradient: const LinearGradient(
+                      colors: [_P.goldLight, _P.goldDeep],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  copy.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 31,
+                    height: 1.15,
+                    fontWeight: FontWeight.w800,
+                    // Letter-spacing breaks Arabic letter joining → keep 0.
+                    letterSpacing: item.isRtl ? 0 : -0.6,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  copy.subtitle,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 14.5,
+                    height: 1.5,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.white.withValues(alpha: 0.68),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ───────────────────────────── grid ─────────────────────────────
+
+  Widget _buildGrid(double bottomInset) {
+    return ShaderMask(
+      blendMode: BlendMode.dstIn,
+      shaderCallback: (rect) => const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [Colors.transparent, Colors.black],
+        stops: [0.0, 0.035],
+      ).createShader(rect),
+      child: GridView.builder(
+        controller: _scroll,
+        physics: const BouncingScrollPhysics(),
+        padding: EdgeInsets.fromLTRB(20, 10, 20, 132 + bottomInset),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          mainAxisExtent: 116,
+        ),
+        itemCount: kLanguageItems.length,
+        itemBuilder: (context, index) {
+          final item = kLanguageItems[index];
+          final row = index ~/ 2;
+          final col = index % 2;
+          final begin = (0.14 + row * 0.07 + col * 0.03).clamp(0.0, 0.62);
+          final end = (begin + 0.36).clamp(0.0, 1.0);
+
+          return _reveal(
+            begin: begin,
+            end: end,
+            dy: 40,
+            scaleFrom: 0.9,
+            child: _LanguageTile(
+              item: item,
+              selected: item.code == _selectedCode,
+              onTap: () => _onSelectLanguage(item.code),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // ───────────────────────────── dock ─────────────────────────────
+
+  Widget _buildDock(LanguageItem selected) {
+    final copy = _kCopy[selected.code] ?? _kCopy['en']!;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(32),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: const Color(0xFF101823).withValues(alpha: 0.62),
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+          ),
+          child: Row(
+            children: [
+              // Current selection summary
+              Expanded(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 380),
+                  switchInCurve: Curves.easeOutBack,
+                  switchOutCurve: Curves.easeIn,
+                  transitionBuilder: (child, anim) => FadeTransition(
+                    opacity: anim,
+                    child: ScaleTransition(
+                      scale: Tween<double>(begin: 0.85, end: 1).animate(anim),
+                      child: child,
+                    ),
+                  ),
+                  layoutBuilder: (current, previous) => Stack(
+                    alignment: Alignment.centerLeft,
+                    children: [...previous, if (current != null) current],
+                  ),
+                  child: Row(
+                    key: ValueKey(selected.code),
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      const SizedBox(height: 8),
-
-                      // Golden Pin & Pyramids Brand Logo
-                      _buildHeaderLogo(),
-
-                      const SizedBox(height: 14),
-
-                      // Main Title: "Choose Your Language"
-                      RichText(
-                        textAlign: TextAlign.center,
-                        text: const TextSpan(
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.3,
-                            color: Colors.white,
-                          ),
+                      _FlagCircle(
+                        item: selected,
+                        size: 46,
+                        ring: true,
+                      ),
+                      const SizedBox(width: 12),
+                      Flexible(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            TextSpan(text: 'Choose Your '),
-                            TextSpan(
-                              text: 'Language',
+                            Text(
+                              selected.nativeName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 15.5,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 1),
+                            Text(
+                              selected.englishName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                color: Color(0xFFFFD700), // Royal 24K Gold
-                                shadows: [
-                                  Shadow(
-                                    color: Color(0x66FFD700),
-                                    blurRadius: 12,
-                                    offset: Offset(0, 2),
-                                  ),
-                                ],
+                                fontSize: 11.5,
+                                color: Colors.white.withValues(alpha: 0.5),
                               ),
                             ),
                           ],
                         ),
                       ),
-
-                      const SizedBox(height: 6),
-
-                      // Subtitle
-                      const Text(
-                        'Select your preferred language\nto explore Egypt your way.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 13.5,
-                          height: 1.35,
-                          fontWeight: FontWeight.w400,
-                          color: Color(0xCCFFFFFF),
-                        ),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      // Pharaonic Eye of Horus Divider
-                      _buildPharaonicDivider(),
-                      const SizedBox(height: 8),
                     ],
                   ),
                 ),
+              ),
+              const SizedBox(width: 10),
+              _buildContinueButton(copy.cont, selected.isRtl),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-                // 4. Scrollable List of 15 Languages with Staggered Entrance
-                Expanded(
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 96),
-                    itemCount: kLanguageItems.length,
-                    itemBuilder: (context, index) {
-                      final item = kLanguageItems[index];
-                      final isSelected = item.code == _selectedCode;
-
-                      // Staggered interval calculation
-                      final start = (index * 0.04).clamp(0.0, 0.7);
-                      final end = (start + 0.35).clamp(0.0, 1.0);
-                      final animation = CurvedAnimation(
-                        parent: _staggerController,
-                        curve: Interval(start, end, curve: Curves.easeOutCubic),
-                      );
-
-                      return AnimatedBuilder(
-                        animation: animation,
-                        builder: (context, child) {
-                          return Opacity(
-                            opacity: animation.value,
-                            child: Transform.translate(
-                              offset: Offset(0, 32 * (1.0 - animation.value)),
-                              child: child,
-                            ),
-                          );
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: _buildLanguageCard(item, isSelected),
+  Widget _buildContinueButton(String label, bool rtl) {
+    return _PressScale(
+      onTap: _handleContinue,
+      pressedScale: 0.95,
+      child: Container(
+        height: 52,
+        padding: const EdgeInsets.symmetric(horizontal: 22),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(26),
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [_P.goldLight, _P.gold, _P.goldDeep],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: _P.gold.withValues(alpha: 0.38),
+              blurRadius: 22,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(26),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Light sweep
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: AnimatedBuilder(
+                    animation: _shine,
+                    builder: (context, _) {
+                      final p = (_shine.value / 0.5).clamp(0.0, 1.0);
+                      final slide = -1.0 + 2.0 * Curves.easeInOut.transform(p);
+                      return DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                            colors: [
+                              Colors.white.withValues(alpha: 0.0),
+                              Colors.white.withValues(alpha: 0.38),
+                              Colors.white.withValues(alpha: 0.0),
+                            ],
+                            stops: const [0.35, 0.5, 0.65],
+                            transform: _SlideGradient(slide),
+                          ),
                         ),
                       );
                     },
                   ),
                 ),
-              ],
-            ),
-          ),
-
-          // 5. Floating Bottom "Continue" Button
-          Positioned(
-            left: 24,
-            right: 24,
-            bottom: 22,
-            child: SafeArea(
-              top: false,
-              child: _buildContinueButton(),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Golden Logo Header matching the design mockup
-  Widget _buildHeaderLogo() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Pin & Pyramid Badge
-        Container(
-          width: 52,
-          height: 52,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFFFFDF70),
-                Color(0xFFD4AF37),
-                Color(0xFFB8860B),
-              ],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFFFFD700).withValues(alpha: 0.35),
-                blurRadius: 16,
-                offset: const Offset(0, 4),
               ),
-            ],
-          ),
-          child: const Center(
-            child: Icon(
-              Icons.location_on_rounded,
-              size: 30,
-              color: Color(0xFF131D2A),
-            ),
-          ),
-        ),
-        const SizedBox(height: 6),
-        const Text(
-          'Hena Masr',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 0.8,
-            color: Colors.white,
-          ),
-        ),
-        const Text(
-          'Explore Egypt .. Your Way!',
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w500,
-            letterSpacing: 0.5,
-            color: Color(0xFFFFD700),
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Pharaonic Eye of Horus / Ornamental Gold Divider
-  Widget _buildPharaonicDivider() {
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            height: 1,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.transparent,
-                  const Color(0xFFFFD700).withValues(alpha: 0.6),
-                ],
-              ),
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 4,
-                height: 4,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Color(0xFFFFD700),
-                ),
-              ),
-              const SizedBox(width: 5),
-              // Golden ornamental icon
-              const Icon(
-                Icons.visibility_outlined,
-                size: 15,
-                color: Color(0xFFFFD700),
-              ),
-              const SizedBox(width: 5),
-              Container(
-                width: 4,
-                height: 4,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Color(0xFFFFD700),
-                ),
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: Container(
-            height: 1,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  const Color(0xFFFFD700).withValues(alpha: 0.6),
-                  Colors.transparent,
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Individual Language Card with Animated Border and Radio Button
-  Widget _buildLanguageCard(LanguageItem item, bool isSelected) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 240),
-      curve: Curves.easeInOut,
-      decoration: BoxDecoration(
-        color: isSelected
-            ? const Color(0xFF131D2B).withValues(alpha: 0.85)
-            : const Color(0xFF0F1824).withValues(alpha: 0.60),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isSelected
-              ? const Color(0xFFFFD700)
-              : Colors.white.withValues(alpha: 0.16),
-          width: isSelected ? 1.8 : 1.0,
-        ),
-        boxShadow: isSelected
-            ? [
-                BoxShadow(
-                  color: const Color(0xFFFFD700).withValues(alpha: 0.22),
-                  blurRadius: 14,
-                  offset: const Offset(0, 3),
-                ),
-              ]
-            : [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.20),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => _onSelectLanguage(item.code),
-          borderRadius: BorderRadius.circular(16),
-          splashColor: const Color(0xFFFFD700).withValues(alpha: 0.15),
-          highlightColor: const Color(0xFFFFD700).withValues(alpha: 0.08),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
-                // 1. Flag Thumbnail
-                Container(
-                  width: 44,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: isSelected
-                          ? const Color(0xFFFFD700).withValues(alpha: 0.6)
-                          : Colors.white.withValues(alpha: 0.2),
-                      width: 1,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.35),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 260),
+                child: _busy
+                    ? const SizedBox(
+                        key: ValueKey('busy'),
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.6,
+                          valueColor: AlwaysStoppedAnimation(_P.ink),
+                        ),
+                      )
+                    : Row(
+                        key: ValueKey(label),
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            label,
+                            style: TextStyle(
+                              fontSize: 16.5,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: rtl ? 0 : 0.3,
+                              color: _P.ink,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            rtl
+                                ? Icons.arrow_back_rounded
+                                : Icons.arrow_forward_rounded,
+                            size: 20,
+                            color: _P.ink,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Image.asset(
-                    item.flagAsset,
-                    fit: BoxFit.cover,
-                  ),
-                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
-                const SizedBox(width: 16),
+// ─────────────────────────────────────────────────────────────────────────────
+//  LANGUAGE TILE
+// ─────────────────────────────────────────────────────────────────────────────
 
-                // 2. Language Name & Subtitle
-                Expanded(
-                  child: Column(
+class _LanguageTile extends StatelessWidget {
+  const _LanguageTile({
+    required this.item,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final LanguageItem item;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return _PressScale(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOutCubic,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(22),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: selected
+                ? [
+                    _P.gold.withValues(alpha: 0.22),
+                    _P.gold.withValues(alpha: 0.06),
+                  ]
+                : [
+                    Colors.white.withValues(alpha: 0.075),
+                    Colors.white.withValues(alpha: 0.03),
+                  ],
+          ),
+          border: Border.all(
+            color: selected
+                ? _P.gold.withValues(alpha: 0.95)
+                : Colors.white.withValues(alpha: 0.10),
+            width: selected ? 1.4 : 1.0,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: _P.gold.withValues(alpha: selected ? 0.22 : 0.0),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Directionality(
+          textDirection: item.isRtl ? TextDirection.rtl : TextDirection.ltr,
+          child: Stack(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _FlagCircle(item: item, size: 40, ring: selected),
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         item.nativeName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                          color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.92),
-                          letterSpacing: 0.2,
+                          fontWeight:
+                              selected ? FontWeight.w800 : FontWeight.w600,
+                          color: Colors.white,
                         ),
                       ),
                       const SizedBox(height: 2),
-                      Text(
-                        item.englishName,
+                      AnimatedDefaultTextStyle(
+                        duration: const Duration(milliseconds: 300),
                         style: TextStyle(
                           fontSize: 12,
-                          fontWeight: FontWeight.w400,
-                          color: isSelected
-                              ? const Color(0xFFFFD700).withValues(alpha: 0.85)
-                              : Colors.white.withValues(alpha: 0.55),
+                          color: selected
+                              ? _P.gold
+                              : Colors.white.withValues(alpha: 0.5),
                         ),
+                        child: Text(item.englishName),
                       ),
                     ],
                   ),
-                ),
+                ],
+              ),
+              PositionedDirectional(
+                top: 0,
+                end: 0,
+                child: _CheckBadge(selected: selected),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
-                // 3. Selection Radio Icon
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isSelected ? const Color(0xFFFFD700) : Colors.transparent,
-                    border: Border.all(
-                      color: isSelected
-                          ? const Color(0xFFFFD700)
-                          : Colors.white.withValues(alpha: 0.38),
-                      width: isSelected ? 2.0 : 1.6,
-                    ),
-                  ),
-                  child: isSelected
-                      ? const Center(
-                          child: Icon(
-                            Icons.check_rounded,
-                            size: 16,
-                            color: Color(0xFF101924),
-                          ),
-                        )
-                      : null,
-                ),
-              ],
+class _CheckBadge extends StatelessWidget {
+  const _CheckBadge({required this.selected});
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+      width: 22,
+      height: 22,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: selected ? _P.gold : Colors.transparent,
+        border: Border.all(
+          color: selected ? _P.gold : Colors.white.withValues(alpha: 0.28),
+          width: 1.5,
+        ),
+      ),
+      child: AnimatedScale(
+        scale: selected ? 1 : 0,
+        duration: const Duration(milliseconds: 380),
+        curve: Curves.easeOutBack,
+        child: const Icon(Icons.check_rounded, size: 14, color: _P.ink),
+      ),
+    );
+  }
+}
+
+class _FlagCircle extends StatelessWidget {
+  const _FlagCircle({
+    required this.item,
+    required this.size,
+    required this.ring,
+  });
+
+  final LanguageItem item;
+  final double size;
+  final bool ring;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      width: size + 6,
+      height: size + 6,
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: ring ? _P.gold : Colors.white.withValues(alpha: 0.14),
+          width: ring ? 1.6 : 1.0,
+        ),
+      ),
+      child: ClipOval(
+        child: Image.asset(
+          item.flagAsset,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Container(
+            color: Colors.white.withValues(alpha: 0.1),
+            alignment: Alignment.center,
+            child: Text(
+              item.code.toUpperCase(),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ),
       ),
     );
   }
+}
 
-  /// Bottom "Continue" Gradient Button
-  Widget _buildContinueButton() {
-    return Container(
-      height: 54,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        gradient: const LinearGradient(
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-          colors: [
-            Color(0xFFFFE07A),
-            Color(0xFFFFD700),
-            Color(0xFFE5A93C),
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFFFD700).withValues(alpha: 0.40),
-            blurRadius: 20,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: _handleContinue,
-          borderRadius: BorderRadius.circular(28),
-          splashColor: Colors.white.withValues(alpha: 0.25),
-          child: const Center(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Continue',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
-                    color: Color(0xFF101924),
-                  ),
-                ),
-                SizedBox(width: 8),
-                Icon(
-                  Icons.arrow_forward_rounded,
-                  size: 20,
-                  color: Color(0xFF101924),
-                ),
-              ],
-            ),
-          ),
-        ),
+// ─────────────────────────────────────────────────────────────────────────────
+//  UTILITIES
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Tactile press feedback (scale down on touch, spring back on release).
+class _PressScale extends StatefulWidget {
+  const _PressScale({
+    required this.child,
+    required this.onTap,
+    this.pressedScale = 0.96,
+  });
+
+  final Widget child;
+  final VoidCallback onTap;
+  final double pressedScale;
+
+  @override
+  State<_PressScale> createState() => _PressScaleState();
+}
+
+class _PressScaleState extends State<_PressScale> {
+  bool _pressed = false;
+
+  void _set(bool v) {
+    if (_pressed != v) setState(() => _pressed = v);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => _set(true),
+      onTapUp: (_) => _set(false),
+      onTapCancel: () => _set(false),
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        scale: _pressed ? widget.pressedScale : 1.0,
+        duration: Duration(milliseconds: _pressed ? 110 : 280),
+        curve: _pressed ? Curves.easeOut : Curves.easeOutBack,
+        child: widget.child,
       ),
     );
+  }
+}
+
+/// Slides a gradient horizontally (used for the button light sweep).
+class _SlideGradient extends GradientTransform {
+  const _SlideGradient(this.percent);
+  final double percent;
+
+  @override
+  Matrix4? transform(Rect bounds, {TextDirection? textDirection}) {
+    return Matrix4.translationValues(bounds.width * percent, 0.0, 0.0);
   }
 }
