@@ -1,5 +1,7 @@
+import 'dart:async';
+
 import 'package:device_preview/device_preview.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kIsWeb, kReleaseMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,26 +19,32 @@ import 'features/zones/presentation/providers/zone_providers.dart';
 import 'features/zones/presentation/widgets/zone_confirmation_banner.dart';
 import 'features/zones/presentation/widgets/zone_selector_pill.dart';
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+void main() async {
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
 
-  // Offline-first: use bundled fonts only (see README).
-  GoogleFonts.config.allowRuntimeFetching = false;
+    // Offline-first: use bundled fonts only (see README).
+    GoogleFonts.config.allowRuntimeFetching = false;
 
-  final themeController = await ThemeController.load();
-  final prefs = await SharedPreferences.getInstance();
+    final themeController = await ThemeController.load();
+    final prefs = await SharedPreferences.getInstance();
 
-  runApp(
-    DevicePreview(
-      enabled: kIsWeb,
-      builder: (context) => ProviderScope(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(prefs),
-        ],
-        child: HanaMasrApp(themeController: themeController),
+    runApp(
+      DevicePreview(
+        // The device frame is a development tool: enabled for web debug mode
+        enabled: kIsWeb && !kReleaseMode,
+        builder: (context) => ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+          ],
+          child: HanaMasrApp(themeController: themeController),
+        ),
       ),
-    ),
-  );
+    );
+  }, (error, stack) {
+    debugPrint('Uncaught Zone Error: $error');
+    debugPrint('$stack');
+  });
 }
 
 class HanaMasrApp extends StatelessWidget {
@@ -49,23 +57,23 @@ class HanaMasrApp extends StatelessWidget {
     return ListenableBuilder(
       listenable: themeController,
       builder: (context, _) {
-        // Replace with your locale controller.
+        // Active app locale
         const locale = Locale('ar');
 
         return MaterialApp(
-          title: 'هنا مصر',
           debugShowCheckedModeBanner: false,
+          title: 'هنا مصر',
           locale: locale,
-          supportedLocales: AppLocales.supported,
+          builder: DevicePreview.appBuilder,
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
+          supportedLocales: AppLocales.supported,
           theme: AppTheme.light(locale),
           darkTheme: AppTheme.dark(locale),
           themeMode: themeController.mode,
-          builder: DevicePreview.appBuilder,
           home: const _AppRoot(),
         );
       },
