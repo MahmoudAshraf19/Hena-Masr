@@ -31,7 +31,7 @@ class _ZonePickerSheetState extends ConsumerState<ZonePickerSheet> {
   @override
   Widget build(BuildContext context) {
     final catalogAsync = ref.watch(zoneCatalogProvider);
-    final zoneState = ref.watch(currentZoneProvider).valueOrNull;
+    final zoneState = ref.watch(currentZoneProvider).value;
     final isArabic = Localizations.localeOf(context).languageCode == 'ar';
 
     return Container(

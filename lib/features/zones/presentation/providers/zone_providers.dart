@@ -89,7 +89,7 @@ class CurrentZoneController extends AsyncNotifier<ZoneState> {
 
   /// Re-detect the zone from the device location (no-op in manual mode).
   Future<void> detect() async {
-    final current = state.valueOrNull;
+    final current = state.value;
     if (current?.source == ZoneSource.manual) return;
     final resolver = _resolver;
     if (resolver == null) return;
@@ -170,7 +170,7 @@ class CurrentZoneController extends AsyncNotifier<ZoneState> {
     await prefs.setString(StorageKeys.zoneMode, 'auto');
     state = AsyncData(ZoneState(
       status: ZoneStatus.detecting,
-      match: state.valueOrNull?.match,
+      match: state.value?.match,
       source: ZoneSource.cached,
     ));
     await detect();

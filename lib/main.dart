@@ -98,7 +98,7 @@ class _DemoScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final zoneState = ref.watch(currentZoneProvider).valueOrNull;
+    final zoneState = ref.watch(currentZoneProvider).value;
     final match = zoneState?.match;
 
     final isArabic = Localizations.localeOf(context).languageCode == 'ar';

@@ -16,7 +16,7 @@ class ZoneSelectorPill extends ConsumerWidget {
     final zoneAsync = ref.watch(currentZoneProvider);
     final isArabic = Localizations.localeOf(context).languageCode == 'ar';
 
-    final state = zoneAsync.valueOrNull;
+    final state = zoneAsync.value;
     final match = state?.match;
 
     String zoneName;

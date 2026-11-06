@@ -12,7 +12,7 @@ class ZoneConfirmationBanner extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(currentZoneProvider).valueOrNull;
+    final state = ref.watch(currentZoneProvider).value;
     if (state == null || !state.shouldConfirm) return const SizedBox.shrink();
 
     final isArabic = Localizations.localeOf(context).languageCode == 'ar';
