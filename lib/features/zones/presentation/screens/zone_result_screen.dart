@@ -619,3 +619,4 @@ class ZoneResultScreen extends ConsumerWidget {
     );
   }
 }
+

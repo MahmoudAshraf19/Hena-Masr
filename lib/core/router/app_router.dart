@@ -1,18 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:hena_masr/core/router/route_names.dart';
-import 'package:hena_masr/features/splash/presentation/screens/splash_screen.dart';
+import 'package:hena_masr/features/zones/presentation/screens/zone_result_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: RouteNames.splash,
+    initialLocation: '/',
     routes: [
       GoRoute(
-        path: RouteNames.splash,
-        builder: (context, state) => const SplashScreen(),
+        path: '/',
+        builder: (context, state) => const ZoneResultScreen(),
       ),
-      // Add routes as screens are built. Bottom tabs: StatefulShellRoute.
     ],
   );
 });

@@ -11,7 +11,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'core/di/providers.dart';
 import 'core/localization/supported_locales.dart';
 import 'core/theme/theme.dart';
-import 'features/splash/presentation/screens/splash_screen.dart';
 import 'features/zones/presentation/screens/zone_result_screen.dart';
 
 void main() async {
@@ -53,7 +52,7 @@ class HanaMasrApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('🏗️ [HanaMasr App] Building MaterialApp (DevicePreview active)...');
+    debugPrint('🏗️ [HanaMasr App] Building MaterialApp with ZoneResultScreen...');
     return ListenableBuilder(
       listenable: themeController,
       builder: (context, _) {
@@ -74,42 +73,9 @@ class HanaMasrApp extends StatelessWidget {
           theme: AppTheme.light(defaultLocale),
           darkTheme: AppTheme.dark(defaultLocale),
           themeMode: themeController.mode,
-          home: const _AppRoot(),
+          home: const ZoneResultScreen(),
         );
       },
     );
-  }
-}
-
-class _AppRoot extends StatefulWidget {
-  const _AppRoot();
-
-  @override
-  State<_AppRoot> createState() => _AppRootState();
-}
-
-class _AppRootState extends State<_AppRoot> {
-  bool _splashFinished = false;
-
-  @override
-  Widget build(BuildContext context) {
-    // 1. Pharaonic 3D Splash Screen
-    if (!_splashFinished) {
-      debugPrint('🏺 [HanaMasr Navigator] Stage 1: Rendering SplashScreen...');
-      return SplashScreen(
-        onInitialized: () {
-          debugPrint('✅ [HanaMasr Navigator] Splash finished! Transitioning directly to ZoneResultScreen...');
-          if (mounted) {
-            setState(() {
-              _splashFinished = true;
-            });
-          }
-        },
-      );
-    }
-
-    // 2. Single simple screen: Location & Zone Result (bilingual in Arabic and English)
-    debugPrint('📍 [HanaMasr Navigator] Stage 2: Rendering ZoneResultScreen...');
-    return const ZoneResultScreen();
   }
 }
