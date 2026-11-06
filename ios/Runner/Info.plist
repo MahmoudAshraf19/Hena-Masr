@@ -27,7 +27,11 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Hana Masr uses your location to automatically detect your tourist zone and show nearby guides, fair prices, and landmarks.</string>
+	<string>يحتاج تطبيق هنا مصر إلى موقعك لتحديد المنطقة السياحية والمحافظة التي تتواجد بها وتوفير الأسعار العادلة والمعالم القريبة. / Hana Masr uses your location to detect your tourist zone and show nearby guides, fair prices, and landmarks.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>تحديث منطقتك السياحية تلقائياً أثناء التنقل بين المعالم التاريخية في مصر. / Automatically keeps your tourist zone updated as you explore historical landmarks across Egypt.</string>
+	<key>NSLocationUsageDescription</key>
+	<string>تحديد محافظتك ومنطقتك الحالية في مصر لتقديم الإرشادات والخدمات الميدانية. / Determines your active Egyptian governorate and district to offer real-time field assistance.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

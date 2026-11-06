@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:hena_masr/core/constants/asset_paths.dart';
 import 'package:hena_masr/core/widgets/ankh_loader.dart';
 import 'package:hena_masr/features/splash/presentation/widgets/splash_loading_bar.dart';
+import 'package:hena_masr/features/zones/presentation/providers/zone_providers.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({
     super.key,
     this.onInitialized,
@@ -19,10 +21,10 @@ class SplashScreen extends StatefulWidget {
   final Duration minimumDuration;
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
+class _SplashScreenState extends ConsumerState<SplashScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _progressController;
   late final Animation<double> _progressAnimation;
@@ -30,6 +32,11 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
+
+    // Initiate user location detection and zone resolution right from app start
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(currentZoneProvider.notifier).detect();
+    });
 
     // Fullscreen immersive experience during splash
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
