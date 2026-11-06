@@ -178,9 +178,9 @@ final class ZoneResolver {
     ZoneMatch previous,
     double lat,
     double lng,
-    double acc,
+    double accuracyM,
   ) {
-    final margin = math.max(150.0, acc.clamp(0.0, 1000.0).toDouble());
+    final margin = math.max(150.0, accuracyM.clamp(0.0, 1000.0).toDouble());
     var district = fresh.district;
     var governorate = fresh.governorate;
     var highlight = fresh.highlight;
