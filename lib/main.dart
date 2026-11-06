@@ -1,3 +1,5 @@
+import 'package:device_preview/device_preview.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,11 +27,14 @@ Future<void> main() async {
   final prefs = await SharedPreferences.getInstance();
 
   runApp(
-    ProviderScope(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(prefs),
-      ],
-      child: HanaMasrApp(themeController: themeController),
+    DevicePreview(
+      enabled: kIsWeb,
+      builder: (context) => ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+        child: HanaMasrApp(themeController: themeController),
+      ),
     ),
   );
 }
@@ -48,9 +53,11 @@ class HanaMasrApp extends StatelessWidget {
         const locale = Locale('ar');
 
         return MaterialApp(
+          useInheritedMediaQuery: true,
+          locale: kIsWeb ? DevicePreview.locale(context) : locale,
+          builder: kIsWeb ? DevicePreview.appBuilder : null,
           title: 'هنا مصر',
           debugShowCheckedModeBanner: false,
-          locale: locale,
           supportedLocales: AppLocales.supported,
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
