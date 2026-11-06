@@ -31,14 +31,16 @@ void main() async {
     final prefs = await SharedPreferences.getInstance();
 
     runApp(
-      DevicePreview(
-        // The device frame is a development tool: enabled for web debug mode
-        enabled: kIsWeb && !kReleaseMode,
-        builder: (context) => ProviderScope(
-          overrides: [
-            sharedPreferencesProvider.overrideWithValue(prefs),
-          ],
-          child: HanaMasrApp(themeController: themeController),
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+        child: DevicePreview(
+          // Always enabled on web with fresh memory storage (ignores disabled localStorage)
+          enabled: true,
+          storage: DevicePreviewStorage.none(),
+          isToolbarVisible: true,
+          builder: (context) => HanaMasrApp(themeController: themeController),
         ),
       ),
     );
@@ -62,9 +64,10 @@ class HanaMasrApp extends StatelessWidget {
         const locale = Locale('ar');
 
         return MaterialApp(
+          useInheritedMediaQuery: true,
           debugShowCheckedModeBanner: false,
           title: 'هنا مصر',
-          locale: locale,
+          locale: DevicePreview.locale(context),
           builder: DevicePreview.appBuilder,
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,

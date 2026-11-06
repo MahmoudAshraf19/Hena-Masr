@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -38,8 +39,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       ref.read(currentZoneProvider.notifier).detect();
     });
 
-    // Fullscreen immersive experience during splash
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    // Fullscreen immersive experience during splash on mobile devices
+    if (!kIsWeb) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    }
 
     _progressController = AnimationController(
       vsync: this,
@@ -54,7 +57,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     _progressController.forward().then((_) {
       if (mounted) {
         // Restore system UI overlays
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+        if (!kIsWeb) {
+          SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+        }
 
         if (widget.onInitialized != null) {
           widget.onInitialized!();
@@ -65,7 +70,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   @override
   void dispose() {
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    if (!kIsWeb) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    }
     _progressController.dispose();
     super.dispose();
   }
