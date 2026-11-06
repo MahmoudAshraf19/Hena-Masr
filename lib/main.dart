@@ -24,8 +24,8 @@ void main() async {
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
 
-    // Offline-first: use bundled fonts only (see README).
-    GoogleFonts.config.allowRuntimeFetching = false;
+    // Allow runtime fetching so Cairo & Plus Jakarta Sans fonts load smoothly
+    GoogleFonts.config.allowRuntimeFetching = true;
 
     final themeController = await ThemeController.load();
     final prefs = await SharedPreferences.getInstance();
