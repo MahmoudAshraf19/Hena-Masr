@@ -74,10 +74,23 @@ final class GeoBounds {
     return GeoBounds(minLat, maxLat, minLng, maxLng);
   }
 
+  factory GeoBounds.union(Iterable<GeoBounds> all) {
+    var minLat = double.infinity, maxLat = -double.infinity;
+    var minLng = double.infinity, maxLng = -double.infinity;
+    for (final b in all) {
+      if (b.minLat < minLat) minLat = b.minLat;
+      if (b.maxLat > maxLat) maxLat = b.maxLat;
+      if (b.minLng < minLng) minLng = b.minLng;
+      if (b.maxLng > maxLng) maxLng = b.maxLng;
+    }
+    return GeoBounds(minLat, maxLat, minLng, maxLng);
+  }
+
   final double minLat, maxLat, minLng, maxLng;
 
-  double get areaDeg2 => (maxLat - minLat) * (maxLng - minLng);
-
-  bool contains(double lat, double lng) =>
-      lat >= minLat && lat <= maxLat && lng >= minLng && lng <= maxLng;
+  bool contains(double lat, double lng, {double marginDeg = 0}) =>
+      lat >= minLat - marginDeg &&
+      lat <= maxLat + marginDeg &&
+      lng >= minLng - marginDeg &&
+      lng <= maxLng + marginDeg;
 }

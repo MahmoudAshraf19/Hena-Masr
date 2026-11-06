@@ -1,87 +1,164 @@
-import 'dart:typed_data';
+import 'package:hena_masr/features/zones/domain/entities/geo_shape.dart';
 
-import 'package:hena_masr/core/utils/geo_math.dart';
-
-/// Governorate-level zone (27 governorates). Together they cover the country.
+/// Level 1 — governorate (27). Polygon is a light outline (display / fallback).
 final class Governorate {
-  Governorate({
+  const Governorate({
+    required this.code,
     required this.id,
+    required this.iso,
     required this.nameAr,
     required this.nameEn,
-    required this.rings,
-  }) : bounds = rings.map(GeoBounds.ofRing).toList(growable: false);
+    required this.lat,
+    required this.lng,
+    required this.areaKm2,
+    required this.shape,
+  });
 
-  final String id; // e.g. gov_giza
+  final String code; // EG01 (stable key, same as the source dataset)
+  final String id; // gov_cairo (readable alias)
+  final String iso; // EG-C (ISO 3166-2)
   final String nameAr;
   final String nameEn;
-  final List<Float64List> rings;
-  final List<GeoBounds> bounds;
-
-  double get boundsArea => bounds.fold(0.0, (s, b) => s + b.areaDeg2);
-
-  bool contains(double lat, double lng) {
-    for (var i = 0; i < rings.length; i++) {
-      if (bounds[i].contains(lat, lng) &&
-          GeoMath.pointInRing(lat, lng, rings[i])) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /// Meters to the nearest border edge (inside or outside).
-  double edgeDistanceM(double lat, double lng) {
-    var best = double.infinity;
-    for (final r in rings) {
-      final d = GeoMath.distanceToRingM(lat, lng, r);
-      if (d < best) best = d;
-    }
-    return best;
-  }
+  final double lat;
+  final double lng;
+  final double areaKm2;
+  final GeoShape shape;
 }
 
-/// Curated tourist / famous-area zone (circle). Takes priority over the
-/// governorate polygon because it is hand-verified and more precise.
-final class Area {
-  const Area({
+enum DistrictKind { qism, markaz, newCity, outsideZemam, port, region }
+
+enum DistrictGeometry { polygon, approxCircle, point }
+
+/// Level 2 — qism / markaz / new city inside a governorate
+/// (Cairo → Gamaliya, Zamalek, Nasr City 1, Maadi, …).
+final class District {
+  const District({
     required this.id,
-    required this.governorateId,
+    required this.governorateCode,
+    required this.kind,
+    required this.nameAr,
+    required this.nameArFull,
+    required this.nameEn,
+    required this.labelEn,
+    required this.lat,
+    required this.lng,
+    required this.geometry,
+    this.areaKm2,
+    this.shape,
+    this.radiusM,
+    this.splitInto = const [],
+  });
+
+  final String id; // EG0133 (stable key)
+  final String governorateCode;
+  final DistrictKind kind;
+  final String nameAr; // الزمالك
+  final String nameArFull; // قسم الزمالك
+  final String nameEn; // Zamalek
+  final String labelEn; // Zamalek (Qism)
+  final double lat; // representative point (always inside the polygon)
+  final double lng;
+  final DistrictGeometry geometry;
+  final double? areaKm2;
+  final GeoShape? shape; // only for [DistrictGeometry.polygon]
+  final double? radiusM; // only for [DistrictGeometry.approxCircle]
+
+  /// Units created after 2017 by splitting this one. They have no polygon of
+  /// their own; this district's polygon covers them.
+  final List<({String id, String nameAr, String nameEn})> splitInto;
+
+  /// Hide from pickers: technical units, not places people name.
+  bool get isTechnical =>
+      kind == DistrictKind.outsideZemam || kind == DistrictKind.port;
+}
+
+/// Curated tourist destination (circle). An overlay, not an administrative unit.
+final class Highlight {
+  const Highlight({
+    required this.id,
+    required this.governorateCode,
     required this.nameAr,
     required this.nameEn,
     required this.lat,
     required this.lng,
     required this.radiusM,
     required this.priority,
+    this.districtId,
   });
 
   final String id;
-  final String governorateId;
+  final String governorateCode;
   final String nameAr;
   final String nameEn;
   final double lat;
   final double lng;
   final double radiusM;
-
-  /// Higher wins when circles overlap (e.g. GEM inside the Giza plateau zone).
   final int priority;
+  final String? districtId;
+}
+
+/// Level 3 — urban neighbourhood / city inside a district (optional pack).
+final class Locality {
+  const Locality({
+    required this.id,
+    required this.districtId,
+    required this.governorateCode,
+    required this.nameAr,
+    required this.nameEn,
+    required this.shape,
+  });
+
+  final String id;
+  final String districtId;
+  final String governorateCode;
+  final String nameAr;
+  final String nameEn;
+  final GeoShape shape;
 }
 
 final class ZoneCatalog {
-  ZoneCatalog({required this.governorates, required this.areas})
-      : _govById = {for (final g in governorates) g.id: g},
-        _areaById = {for (final a in areas) a.id: a};
+  ZoneCatalog({
+    required this.governorates,
+    required this.districts,
+    required this.highlights,
+    required this.neighbors,
+  })  : _govByCode = {for (final g in governorates) g.code: g},
+        _districtById = {for (final d in districts) d.id: d},
+        polygonDistricts = districts
+            .where((d) => d.geometry == DistrictGeometry.polygon)
+            .toList(growable: false),
+        circleDistricts = districts
+            .where((d) => d.geometry == DistrictGeometry.approxCircle)
+            .toList(growable: false);
 
   final List<Governorate> governorates;
-  final List<Area> areas;
-  final Map<String, Governorate> _govById;
-  final Map<String, Area> _areaById;
+  final List<District> districts;
+  final List<Highlight> highlights;
 
-  Governorate? governorate(String id) => _govById[id];
-  Area? area(String id) => _areaById[id];
+  /// Land of neighbouring countries — used only to reject non-Egypt points.
+  final List<GeoShape> neighbors;
 
-  List<Area> areasOf(String governorateId) => areas
-      .where((a) => a.governorateId == governorateId)
-      .toList(growable: false);
+  final List<District> polygonDistricts;
+  final List<District> circleDistricts;
+  final Map<String, Governorate> _govByCode;
+  final Map<String, District> _districtById;
+
+  Governorate? governorate(String code) => _govByCode[code];
+  District? district(String id) => _districtById[id];
+
+  Governorate? governorateById(String id) {
+    for (final g in governorates) {
+      if (g.id == id) return g;
+    }
+    return null;
+  }
+
+  /// Districts of a governorate for pickers (technical units hidden), A→Z by
+  /// the Arabic name.
+  List<District> districtsOf(String governorateCode) => districts
+      .where((d) => d.governorateCode == governorateCode && !d.isTechnical)
+      .toList(growable: false)
+    ..sort((a, b) => a.nameAr.compareTo(b.nameAr));
 }
 
 enum ZoneConfidence { high, medium, low }
@@ -92,27 +169,53 @@ enum ZoneSource { gps, cached, manual }
 final class ZoneMatch {
   const ZoneMatch({
     required this.governorate,
-    this.area,
+    this.district,
+    this.highlight,
+    this.locality,
     this.confidence = ZoneConfidence.high,
     this.approximate = false,
     this.nearBorder = false,
+    this.outsideZemam = false,
   });
 
   final Governorate governorate;
-  final Area? area;
+
+  /// null when the point is in desert / outside the built-up area, or when the
+  /// district could not be determined reliably.
+  final District? district;
+
+  /// Tourist destination overlay (Giza Pyramids, Karnak, Sharm, …) if inside.
+  final Highlight? highlight;
+
+  /// Neighbourhood, only when the locality pack is loaded and the point is inside.
+  final Locality? locality;
+
   final ZoneConfidence confidence;
 
-  /// Point was outside every polygon (coast / sea) and snapped to the nearest
-  /// governorate within tolerance.
+  /// Point was in water / outside every polygon and snapped to the nearest land.
   final bool approximate;
 
-  /// Point is close to a governorate border → ask the user to confirm.
+  /// Point is close to a district border.
   final bool nearBorder;
 
-  /// Id used to store the zone and to filter places.
-  String get primaryId => area?.id ?? governorate.id;
-  String get nameAr => area?.nameAr ?? governorate.nameAr;
-  String get nameEn => area?.nameEn ?? governorate.nameEn;
+  final bool outsideZemam;
+
+  /// The id places should be filtered by (most specific administrative level).
+  String get zoneId => district?.id ?? governorate.code;
+
+  String get nameAr => locality?.nameAr ?? district?.nameAr ?? governorate.nameAr;
+  String get nameEn => locality?.nameEn ?? district?.nameEn ?? governorate.nameEn;
 
   bool get needsConfirmation => confidence == ZoneConfidence.low;
+
+  ZoneMatch copyWith({Locality? locality}) => ZoneMatch(
+        governorate: governorate,
+        district: district,
+        highlight: highlight,
+        locality: locality ?? this.locality,
+        confidence: confidence,
+        approximate: approximate,
+        nearBorder: nearBorder,
+        outsideZemam: outsideZemam,
+      );
 }

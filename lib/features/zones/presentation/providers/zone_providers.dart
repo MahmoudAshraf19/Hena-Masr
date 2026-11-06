@@ -8,15 +8,21 @@ import 'package:hena_masr/core/error/failures.dart';
 import 'package:hena_masr/core/services/location_service.dart';
 import 'package:hena_masr/features/zones/data/zones_local_datasource.dart';
 import 'package:hena_masr/features/zones/domain/entities/zone.dart';
+import 'package:hena_masr/features/zones/domain/services/locality_index.dart';
 import 'package:hena_masr/features/zones/domain/services/zone_resolver.dart';
 
 final locationServiceProvider = Provider<LocationService>(
   (ref) => const LocationService(),
 );
 
-/// Offline catalog (27 governorates + curated areas), loaded once.
+/// Offline catalog (27 governorates + 403 districts + destinations), loaded once.
 final zoneCatalogProvider = FutureProvider<ZoneCatalog>(
-  (ref) => ZonesLocalDataSource().load(),
+  (ref) => ZonesLocalDataSource().loadCatalog(),
+);
+
+/// Neighbourhood pack (level 3). Loaded lazily the first time it is needed.
+final localityIndexProvider = FutureProvider<LocalityIndex>(
+  (ref) async => LocalityIndex(await ZonesLocalDataSource().loadLocalities()),
 );
 
 enum ZoneStatus { detecting, ready, outsideEgypt, locationIssue }
@@ -34,7 +40,7 @@ final class ZoneState {
   final ZoneSource source;
   final LocationIssue? issue;
 
-  /// UI should show a "Is this where you are? / change" prompt.
+  /// UI should show a "Are you in …? / change" prompt.
   bool get shouldConfirm =>
       status == ZoneStatus.ready &&
       source == ZoneSource.gps &&
@@ -43,9 +49,9 @@ final class ZoneState {
 
 /// Current zone of the user.
 ///
-/// * Manual choice (persisted) always wins over GPS.
+/// * A manual choice (persisted) always wins over GPS.
 /// * Otherwise: shows the last cached zone instantly, then refreshes from GPS.
-/// * Call [detect] on app resume / pull-to-refresh to re-check.
+/// * Call [CurrentZoneController.detect] on app resume / pull-to-refresh.
 final currentZoneProvider =
     AsyncNotifierProvider<CurrentZoneController, ZoneState>(
   CurrentZoneController.new,
@@ -95,9 +101,9 @@ class CurrentZoneController extends AsyncNotifier<ZoneState> {
     ));
 
     final result = await ref.read(locationServiceProvider).getCurrentPosition();
-    result.when(
-      onSuccess: (pos) {
-        final match = resolver.resolve(
+    await result.when(
+      onSuccess: (pos) async {
+        var match = resolver.resolve(
           lat: pos.latitude,
           lng: pos.longitude,
           accuracyM: pos.accuracy,
@@ -110,33 +116,47 @@ class CurrentZoneController extends AsyncNotifier<ZoneState> {
           ));
           return;
         }
+        if (match.district != null) {
+          match = await _withLocality(match, pos.latitude, pos.longitude);
+        }
         final prefs = ref.read(sharedPreferencesProvider);
-        prefs.setString(StorageKeys.zoneMode, 'auto');
-        prefs.setString(StorageKeys.zoneId, match.primaryId);
+        await prefs.setString(StorageKeys.zoneMode, 'auto');
+        await prefs.setString(StorageKeys.zoneId, match.zoneId);
         state = AsyncData(ZoneState(
           status: ZoneStatus.ready,
           match: match,
           source: ZoneSource.gps,
         ));
       },
-      onFailure: (failure) {
+      onFailure: (failure) async {
         state = AsyncData(ZoneState(
           status: ZoneStatus.locationIssue,
           match: current?.match,
           source: current?.source ?? ZoneSource.gps,
-          issue: failure is LocationFailure ? failure.issue : LocationIssue.unknown,
+          issue:
+              failure is LocationFailure ? failure.issue : LocationIssue.unknown,
         ));
       },
     );
   }
 
-  /// User picked a zone manually (governorate id or area id).
+  Future<ZoneMatch> _withLocality(ZoneMatch m, double lat, double lng) async {
+    try {
+      final index = await ref.read(localityIndexProvider.future);
+      final loc = index.find(m.district!.id, lat, lng);
+      return loc == null ? m : m.copyWith(locality: loc);
+    } catch (_) {
+      return m; // the neighbourhood pack is optional — never break detection
+    }
+  }
+
+  /// User picked a zone manually (governorate code like EG01, or district id).
   Future<void> selectManually(String zoneId) async {
     final match = _resolver?.matchFromId(zoneId);
     if (match == null) return;
     final prefs = ref.read(sharedPreferencesProvider);
     await prefs.setString(StorageKeys.zoneMode, 'manual');
-    await prefs.setString(StorageKeys.zoneId, match.primaryId);
+    await prefs.setString(StorageKeys.zoneId, match.zoneId);
     state = AsyncData(ZoneState(
       status: ZoneStatus.ready,
       match: match,

@@ -16,7 +16,10 @@ class ZoneConfirmationBanner extends ConsumerWidget {
     if (state == null || !state.shouldConfirm) return const SizedBox.shrink();
 
     final isArabic = Localizations.localeOf(context).languageCode == 'ar';
-    final name = isArabic ? state.match!.nameAr : state.match!.nameEn;
+    final match = state.match!;
+    final name = isArabic
+        ? (match.highlight?.nameAr ?? match.district?.nameAr ?? match.governorate.nameAr)
+        : (match.highlight?.nameEn ?? match.district?.nameEn ?? match.governorate.nameEn);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -46,8 +49,8 @@ class ZoneConfirmationBanner extends ConsumerWidget {
           TextButton(
             onPressed: () => ZonePickerSheet.show(context),
             child: Text(
-              isArabic ? 'تغيير' : 'Change',
-              style: TextStyle(color: context.hena.carnelianText),
+              isArabic ? 'تأكيد / تغيير' : 'Confirm',
+              style: TextStyle(color: context.hena.carnelianText, fontWeight: FontWeight.bold),
             ),
           ),
         ],

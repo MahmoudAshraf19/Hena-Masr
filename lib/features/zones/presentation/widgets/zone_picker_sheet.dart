@@ -6,7 +6,8 @@ import 'package:hena_masr/features/zones/domain/entities/zone.dart';
 import 'package:hena_masr/features/zones/presentation/providers/zone_providers.dart';
 
 /// Modal bottom sheet allowing the traveler to switch between automatic GPS
-/// detection and manual selection across 27 governorates & 62 tourist areas.
+/// detection and manual selection across 42 tourist highlights, 403 districts,
+/// and 27 governorates (Schema v2).
 class ZonePickerSheet extends ConsumerStatefulWidget {
   const ZonePickerSheet({super.key});
 
@@ -25,7 +26,7 @@ class ZonePickerSheet extends ConsumerStatefulWidget {
 
 class _ZonePickerSheetState extends ConsumerState<ZonePickerSheet> {
   String _searchQuery = '';
-  int _selectedTab = 0; // 0 = Tourist Areas (62), 1 = Governorates (27)
+  int _selectedTab = 0; // 0 = Highlights (42), 1 = Districts (403), 2 = Governorates (27)
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +35,7 @@ class _ZonePickerSheetState extends ConsumerState<ZonePickerSheet> {
     final isArabic = Localizations.localeOf(context).languageCode == 'ar';
 
     return Container(
-      height: MediaQuery.sizeOf(context).height * 0.85,
+      height: MediaQuery.sizeOf(context).height * 0.88,
       decoration: BoxDecoration(
         color: context.theme.scaffoldBackgroundColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
@@ -76,11 +77,11 @@ class _ZonePickerSheetState extends ConsumerState<ZonePickerSheet> {
 
           // GPS Auto-detect card
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Card(
               color: zoneState?.source == ZoneSource.gps
                   ? context.hena.heroSurface
-                  : context.colors.surfaceContainerHighest.withValues(alpha: 0.5),
+                  : context.colors.surfaceContainerHighest.withValues(alpha: 0.45),
               child: ListTile(
                 leading: Icon(
                   Icons.gps_fixed_rounded,
@@ -101,7 +102,7 @@ class _ZonePickerSheetState extends ConsumerState<ZonePickerSheet> {
                   zoneState?.status == ZoneStatus.detecting
                       ? (isArabic ? 'جاري تحديد موقعك...' : 'Locating your position...')
                       : (isArabic
-                          ? 'استخدام إحداثيات القمر الصناعي لتحديث المنطقة'
+                          ? 'استخدام إحداثيات الأقمار الصناعية لتحديث المنطقة'
                           : 'Use live satellite coordinates to track your zone'),
                   style: context.text.bodySmall?.copyWith(
                     color: zoneState?.source == ZoneSource.gps
@@ -128,12 +129,12 @@ class _ZonePickerSheetState extends ConsumerState<ZonePickerSheet> {
 
           // Search Field
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: TextField(
               decoration: InputDecoration(
                 hintText: isArabic
-                    ? 'ابحث عن منطقة سياحية أو محافظة...'
-                    : 'Search tourist area or governorate...',
+                    ? 'ابحث عن وجهة، قسم، مركز، أو محافظة...'
+                    : 'Search highlight, district, or governorate...',
                 prefixIcon: const Icon(Icons.search_rounded),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                 filled: true,
@@ -143,20 +144,25 @@ class _ZonePickerSheetState extends ConsumerState<ZonePickerSheet> {
             ),
           ),
 
-          // Tab Bar (Areas vs Governorates)
+          // 3-way Segmented Control
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             child: SegmentedButton<int>(
               segments: [
                 ButtonSegment(
                   value: 0,
-                  label: Text(isArabic ? 'المناطق السياحية (62)' : 'Tourist Areas (62)'),
-                  icon: const Icon(Icons.explore_outlined),
+                  label: Text(isArabic ? 'الوجهات (42)' : 'Destinations (42)'),
+                  icon: const Icon(Icons.star_outline_rounded, size: 18),
                 ),
                 ButtonSegment(
                   value: 1,
-                  label: Text(isArabic ? 'المحافظات (27)' : 'Governorates (27)'),
-                  icon: const Icon(Icons.location_city_outlined),
+                  label: Text(isArabic ? 'المراكز (403)' : 'Districts (403)'),
+                  icon: const Icon(Icons.map_outlined, size: 18),
+                ),
+                ButtonSegment(
+                  value: 2,
+                  label: Text(isArabic ? 'المحافظات (27)' : 'Govs (27)'),
+                  icon: const Icon(Icons.location_city_outlined, size: 18),
                 ),
               ],
               selected: {_selectedTab},
@@ -164,27 +170,27 @@ class _ZonePickerSheetState extends ConsumerState<ZonePickerSheet> {
             ),
           ),
 
-          // List of Zones
+          // Content List
           Expanded(
             child: catalogAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (err, _) => Center(child: Text('Error loading zones: $err')),
               data: (catalog) {
                 if (_selectedTab == 0) {
-                  // Tourist Areas
-                  final filteredAreas = catalog.areas.where((a) {
+                  // 1) Tourist Highlights (42)
+                  final list = catalog.highlights.where((h) {
                     if (_searchQuery.isEmpty) return true;
-                    return a.nameAr.toLowerCase().contains(_searchQuery) ||
-                        a.nameEn.toLowerCase().contains(_searchQuery);
+                    return h.nameAr.toLowerCase().contains(_searchQuery) ||
+                        h.nameEn.toLowerCase().contains(_searchQuery);
                   }).toList();
 
                   return ListView.separated(
-                    itemCount: filteredAreas.length,
+                    itemCount: list.length,
                     separatorBuilder: (_, __) => const Divider(height: 1, indent: 64),
                     itemBuilder: (context, i) {
-                      final area = filteredAreas[i];
-                      final isSelected = zoneState?.match?.area?.id == area.id;
-                      final gov = catalog.governorate(area.governorateId);
+                      final h = list[i];
+                      final isSelected = zoneState?.match?.highlight?.id == h.id;
+                      final gov = catalog.governorate(h.governorateCode);
 
                       return ListTile(
                         leading: CircleAvatar(
@@ -192,13 +198,13 @@ class _ZonePickerSheetState extends ConsumerState<ZonePickerSheet> {
                               ? context.hena.gold
                               : context.hena.gold.withValues(alpha: 0.15),
                           child: Icon(
-                            Icons.place_rounded,
+                            Icons.star_rounded,
                             color: isSelected ? context.colors.surface : context.hena.gold,
                             size: 20,
                           ),
                         ),
                         title: Text(
-                          isArabic ? area.nameAr : area.nameEn,
+                          isArabic ? h.nameAr : h.nameEn,
                           style: TextStyle(
                             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                           ),
@@ -211,40 +217,90 @@ class _ZonePickerSheetState extends ConsumerState<ZonePickerSheet> {
                             ? Icon(Icons.check_rounded, color: context.hena.gold)
                             : null,
                         onTap: () {
-                          ref
-                              .read(currentZoneProvider.notifier)
-                              .selectManually(area.id);
+                          ref.read(currentZoneProvider.notifier).selectManually(h.id);
+                          Navigator.of(context).pop();
+                        },
+                      );
+                    },
+                  );
+                } else if (_selectedTab == 1) {
+                  // 2) Districts (403)
+                  final list = catalog.districts.where((d) {
+                    if (d.isTechnical) return false;
+                    if (_searchQuery.isEmpty) return true;
+                    return d.nameAr.toLowerCase().contains(_searchQuery) ||
+                        d.nameEn.toLowerCase().contains(_searchQuery) ||
+                        d.labelEn.toLowerCase().contains(_searchQuery);
+                  }).toList();
+
+                  return ListView.separated(
+                    itemCount: list.length,
+                    separatorBuilder: (_, __) => const Divider(height: 1, indent: 64),
+                    itemBuilder: (context, i) {
+                      final d = list[i];
+                      final isSelected = zoneState?.match?.district?.id == d.id;
+                      final gov = catalog.governorate(d.governorateCode);
+
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: isSelected
+                              ? context.hena.turquoise
+                              : context.hena.turquoise.withValues(alpha: 0.12),
+                          child: Icon(
+                            Icons.place_rounded,
+                            color: isSelected
+                                ? context.colors.surface
+                                : context.hena.turquoiseText,
+                            size: 20,
+                          ),
+                        ),
+                        title: Text(
+                          isArabic ? d.nameArFull : d.labelEn,
+                          style: TextStyle(
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                          ),
+                        ),
+                        subtitle: Text(
+                          gov != null ? (isArabic ? gov.nameAr : gov.nameEn) : '',
+                          style: context.text.bodySmall,
+                        ),
+                        trailing: isSelected
+                            ? Icon(Icons.check_rounded, color: context.hena.turquoiseText)
+                            : null,
+                        onTap: () {
+                          ref.read(currentZoneProvider.notifier).selectManually(d.id);
                           Navigator.of(context).pop();
                         },
                       );
                     },
                   );
                 } else {
-                  // Governorates
-                  final filteredGovs = catalog.governorates.where((g) {
+                  // 3) Governorates (27)
+                  final list = catalog.governorates.where((g) {
                     if (_searchQuery.isEmpty) return true;
                     return g.nameAr.toLowerCase().contains(_searchQuery) ||
                         g.nameEn.toLowerCase().contains(_searchQuery);
                   }).toList();
 
                   return ListView.separated(
-                    itemCount: filteredGovs.length,
+                    itemCount: list.length,
                     separatorBuilder: (_, __) => const Divider(height: 1, indent: 64),
                     itemBuilder: (context, i) {
-                      final gov = filteredGovs[i];
-                      final isSelected = zoneState?.match?.area == null &&
-                          zoneState?.match?.governorate.id == gov.id;
+                      final gov = list[i];
+                      final isSelected = zoneState?.match?.district == null &&
+                          zoneState?.match?.highlight == null &&
+                          zoneState?.match?.governorate.code == gov.code;
 
                       return ListTile(
                         leading: CircleAvatar(
                           backgroundColor: isSelected
-                              ? context.hena.turquoise
-                              : context.hena.turquoise.withValues(alpha: 0.15),
+                              ? context.colors.primary
+                              : context.colors.primary.withValues(alpha: 0.12),
                           child: Icon(
                             Icons.location_city_rounded,
                             color: isSelected
-                                ? context.colors.surface
-                                : context.hena.turquoiseText,
+                                ? context.colors.onPrimary
+                                : context.colors.primary,
                             size: 20,
                           ),
                         ),
@@ -254,13 +310,15 @@ class _ZonePickerSheetState extends ConsumerState<ZonePickerSheet> {
                             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                           ),
                         ),
+                        subtitle: Text(
+                          '${gov.iso} • ${gov.areaKm2.toStringAsFixed(0)} km²',
+                          style: context.text.bodySmall,
+                        ),
                         trailing: isSelected
-                            ? Icon(Icons.check_rounded, color: context.hena.turquoiseText)
+                            ? Icon(Icons.check_rounded, color: context.colors.primary)
                             : null,
                         onTap: () {
-                          ref
-                              .read(currentZoneProvider.notifier)
-                              .selectManually(gov.id);
+                          ref.read(currentZoneProvider.notifier).selectManually(gov.code);
                           Navigator.of(context).pop();
                         },
                       );

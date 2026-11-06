@@ -8,6 +8,7 @@ import 'core/constants/asset_paths.dart';
 import 'core/di/providers.dart';
 import 'core/localization/supported_locales.dart';
 import 'core/theme/theme.dart';
+import 'features/settings/presentation/screens/about_screen.dart';
 import 'features/splash/presentation/screens/splash_screen.dart';
 import 'features/zones/domain/entities/zone.dart';
 import 'features/zones/presentation/providers/zone_providers.dart';
@@ -102,10 +103,14 @@ class _DemoScreen extends ConsumerWidget {
 
     final isArabic = Localizations.localeOf(context).languageCode == 'ar';
     final currentZoneName = match != null
-        ? (isArabic ? match.nameAr : match.nameEn)
+        ? (isArabic
+            ? (match.highlight?.nameAr ?? match.locality?.nameAr ?? match.district?.nameAr ?? match.governorate.nameAr)
+            : (match.highlight?.nameEn ?? match.locality?.nameEn ?? match.district?.nameEn ?? match.governorate.nameEn))
         : (isArabic ? 'أهرامات الجيزة' : 'Giza Pyramids');
     final currentGovName = match != null
-        ? (isArabic ? match.governorate.nameAr : match.governorate.nameEn)
+        ? (isArabic
+            ? '${match.governorate.nameAr}${match.district != null && match.highlight != null ? ' • ${match.district!.nameAr}' : ''}'
+            : '${match.governorate.nameEn}${match.district != null && match.highlight != null ? ' • ${match.district!.nameEn}' : ''}')
         : (isArabic ? 'الجيزة' : 'Giza');
 
     return Scaffold(
@@ -124,6 +129,15 @@ class _DemoScreen extends ConsumerWidget {
         ),
         actions: [
           const ZoneSelectorPill(),
+          IconButton(
+            icon: const Icon(Icons.info_outline_rounded),
+            tooltip: 'عن التطبيق ومصادر البيانات',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const AboutScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             tooltip: 'إعادة تشغيل Splash Screen',

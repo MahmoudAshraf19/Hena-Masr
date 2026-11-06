@@ -69,12 +69,15 @@ Every architectural layer adheres to strict **Clean Architecture** and **SOLID**
 * Native OS launch screens across Android (`launch_background`), iOS (`LaunchScreen.storyboard`), and Web (`index.html`).
 * In-engine 3D spinning **Ankh (Key of Life)** loader powered by vector `CustomPaint` with mathematical perspective projection and glowing gold shaders.
 
-### 6. 🧭 Autonomous Offline Zone Resolution Engine
-* **27 Real Governorates (Natural Earth GIS)**: Point-in-polygon ray-casting with axis-aligned bounding box (AABB) spatial indexing.
-* **62 Curated Tourist Zones**: Hand-verified landmark circles with priority-weighting (e.g. GEM over plateau circle).
-* **Smart Boundary Hysteresis**: Eliminates location jitter when traversing governorate and tourist perimeter boundaries.
-* **Coastline & Maritime Tolerance**: Up to 25km boundary-snapping with confidence ratings (`high`, `medium`, `low`).
-* **Dual Resolution Modes**: Background GPS tracking with zero-latency manual override and persistent preference caching.
+### 6. 🧭 Autonomous Offline Zone Resolution Engine (Schema v2)
+* **3-Tier Administrative Hierarchy**:
+  * **Level 1 (Governorates)**: 27 official governorates with resolved dissolve outlines (ISO 3166-2).
+  * **Level 2 (Districts - Markaz/Qism/New Cities)**: 403 administrative districts (365 official CAPMAS/OCHA polygons, 22 new cities, ~11m precision).
+  * **Level 3 (Localities)**: 1,275 urban neighbourhoods and cities loaded on demand.
+  * **Overlay**: 42 hand-curated tourist destinations (Pyramids, GEM, Karnak, Siwa, Sharm, etc.).
+* **Neighbouring-Country Land Mask**: Rejection of foreign points (Eilat, Aqaba, Haql, Gaza, Tobruk) with zero false-positives.
+* **Smart Boundary Hysteresis & Coastline Snapping**: Eliminates jitter at district borders and snaps water/sea coordinates up to 25 km with confidence scoring.
+* **Full Legal Attribution**: Public domain and CC BY-IGO compliant with dedicated in-app attribution screen.
 
 ---
 

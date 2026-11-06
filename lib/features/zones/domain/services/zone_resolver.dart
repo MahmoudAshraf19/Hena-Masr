@@ -6,19 +6,25 @@ import 'package:hena_masr/features/zones/domain/entities/zone.dart';
 /// Resolves a GPS coordinate into a zone. Pure Dart, offline, deterministic.
 ///
 /// Order:
-///  1. Curated area (circle) — highest priority wins.
-///  2. Governorate polygon (point-in-polygon, bbox pre-filter).
-///  3. Nearest governorate within [approxToleranceM] (coast / sea / coarse border).
-///  4. null → outside Egypt.
-/// Then hysteresis against `previous` so the zone doesn't flicker at borders.
+///  1. District polygon (exact point-in-polygon, holes supported).
+///  2. Not in any polygon → neighbouring-country land? → outside Egypt.
+///  3. Otherwise water / coast: snap to the nearest Egyptian district within
+///     [approxToleranceM] (only if it is closer than any foreign land).
+///  4. Desert "outside zemam" → try new-city circles, else governorate only.
+///  5. Tourist highlight overlay (its governorate wins inside its circle).
+///  6. Hysteresis against `previous` so the zone does not flicker at borders.
+///
+/// The Python reference implementation (tools/resolver_v2.py) mirrors this file
+/// line by line and is what the dataset validation runs against.
 final class ZoneResolver {
   ZoneResolver(this.catalog);
 
   final ZoneCatalog catalog;
 
   static const double approxToleranceM = 25000;
-  static const double _minLat = 21.5, _maxLat = 32.0;
-  static const double _minLng = 24.5, _maxLng = 36.9;
+  static const double snapToDistrictM = 3000;
+  static const double _minLat = 21.5, _maxLat = 32.3;
+  static const double _minLng = 24.3, _maxLng = 37.3;
 
   ZoneMatch? resolve({
     required double lat,
@@ -29,85 +35,140 @@ final class ZoneResolver {
     if (lat < _minLat || lat > _maxLat || lng < _minLng || lng > _maxLng) {
       return null;
     }
-    final fresh = _resolveRaw(lat, lng, accuracyM);
-    if (fresh == null) return null;
+
+    // 1) exact district polygon
+    District? hit;
+    for (final d in catalog.polygonDistricts) {
+      if (d.shape!.contains(lat, lng)) {
+        hit = d;
+        break;
+      }
+    }
+
+    var approximate = false;
+    double? snapDistM;
+
+    if (hit == null) {
+      // 2) neighbouring land → not Egypt
+      for (final n in catalog.neighbors) {
+        if (n.contains(lat, lng)) return null;
+      }
+      // 3) water / coast snap
+      District? nearest;
+      var egyptD = double.infinity;
+      for (final d in catalog.polygonDistricts) {
+        if (!d.shape!.nearBounds(lat, lng, 0.3)) continue;
+        final e = d.shape!.edgeDistanceM(lat, lng);
+        if (e < egyptD) {
+          egyptD = e;
+          nearest = d;
+        }
+      }
+      if (nearest == null || egyptD > approxToleranceM) return null;
+      var foreignD = double.infinity;
+      for (final n in catalog.neighbors) {
+        if (!n.nearBounds(lat, lng, 0.5)) continue;
+        final e = n.edgeDistanceM(lat, lng);
+        if (e < foreignD) foreignD = e;
+      }
+      if (foreignD < egyptD) return null;
+      hit = nearest;
+      approximate = true;
+      snapDistM = egyptD;
+    }
+
+    var governorateCode = hit.governorateCode;
+    District? district = hit;
+    var confidence = _confidenceFor(accuracyM);
+    var nearBorder = false;
+
+    if (approximate) {
+      confidence =
+          snapDistM! <= snapToDistrictM ? ZoneConfidence.medium : ZoneConfidence.low;
+      if (snapDistM > snapToDistrictM) district = null;
+    } else {
+      final edge = hit.shape!.edgeDistanceM(lat, lng);
+      nearBorder = edge < math.max(150.0, accuracyM);
+      if (nearBorder) confidence = _downgrade(confidence);
+    }
+
+    // 4) desert outside the built-up area → new-city circle or governorate only
+    var outsideZemam = district != null && district.kind == DistrictKind.outsideZemam;
+    if (outsideZemam || district == null) {
+      for (final c in catalog.circleDistricts) {
+        if (c.governorateCode == governorateCode &&
+            GeoMath.haversineM(lat, lng, c.lat, c.lng) <= c.radiusM!) {
+          district = c;
+          outsideZemam = false;
+          break;
+        }
+      }
+      if (outsideZemam) district = null;
+    }
+
+    // 5) tourist highlight overlay
+    Highlight? highlight;
+    var bestRatio = double.infinity;
+    for (final h in catalog.highlights) {
+      final d = GeoMath.haversineM(lat, lng, h.lat, h.lng);
+      if (d > h.radiusM) continue;
+      final ratio = d / h.radiusM;
+      if (highlight == null ||
+          h.priority > highlight.priority ||
+          (h.priority == highlight.priority && ratio < bestRatio)) {
+        highlight = h;
+        bestRatio = ratio;
+      }
+    }
+    if (highlight != null && highlight.governorateCode != governorateCode) {
+      // Curated destination beats a boundary error in the 2017 polygons.
+      governorateCode = highlight.governorateCode;
+      district = null;
+    }
+
+    final gov = catalog.governorate(governorateCode);
+    if (gov == null) return null;
+
+    final fresh = ZoneMatch(
+      governorate: gov,
+      district: district,
+      highlight: highlight,
+      confidence: confidence,
+      approximate: approximate,
+      nearBorder: nearBorder,
+      outsideZemam: outsideZemam,
+    );
     if (previous == null) return fresh;
     return _applyHysteresis(fresh, previous, lat, lng, accuracyM);
   }
 
-  /// Build a match from a stored / manually chosen zone id.
+  /// Build a match from a stored / manually chosen zone id
+  /// (highlight id, district id like EG0133, or governorate code like EG01).
   ZoneMatch? matchFromId(String id) {
-    final area = catalog.area(id);
-    if (area != null) {
-      final gov = catalog.governorate(area.governorateId);
-      if (gov == null) return null;
-      return ZoneMatch(governorate: gov, area: area);
+    // 1. Check curated tourist highlights
+    for (final h in catalog.highlights) {
+      if (h.id == id) {
+        final g = catalog.governorate(h.governorateCode);
+        final d = h.districtId != null ? catalog.district(h.districtId!) : null;
+        if (g != null) {
+          return ZoneMatch(governorate: g, district: d, highlight: h);
+        }
+      }
     }
-    final gov = catalog.governorate(id);
-    return gov == null ? null : ZoneMatch(governorate: gov);
+
+    // 2. Check district
+    final d = catalog.district(id);
+    if (d != null) {
+      final g = catalog.governorate(d.governorateCode);
+      return g == null ? null : ZoneMatch(governorate: g, district: d);
+    }
+
+    // 3. Check governorate by code or alias id
+    final g = catalog.governorate(id) ?? catalog.governorateById(id);
+    return g == null ? null : ZoneMatch(governorate: g);
   }
 
   // ---------------------------------------------------------------------------
-
-  ZoneMatch? _resolveRaw(double lat, double lng, double acc) {
-    // 1) curated areas
-    Area? best;
-    var bestRatio = double.infinity;
-    for (final a in catalog.areas) {
-      final d = GeoMath.haversineM(lat, lng, a.lat, a.lng);
-      if (d > a.radiusM) continue;
-      final ratio = d / a.radiusM;
-      if (best == null ||
-          a.priority > best.priority ||
-          (a.priority == best.priority && ratio < bestRatio)) {
-        best = a;
-        bestRatio = ratio;
-      }
-    }
-    if (best != null) {
-      final gov = catalog.governorate(best.governorateId);
-      if (gov != null) {
-        var conf = _confidenceFor(acc);
-        if (acc > best.radiusM) conf = _downgrade(conf);
-        return ZoneMatch(governorate: gov, area: best, confidence: conf);
-      }
-    }
-
-    // 2) governorate polygons (smallest wins if borders overlap)
-    Governorate? hit;
-    for (final g in catalog.governorates) {
-      if (g.contains(lat, lng) &&
-          (hit == null || g.boundsArea < hit.boundsArea)) {
-        hit = g;
-      }
-    }
-    if (hit != null) {
-      final border = hit.edgeDistanceM(lat, lng);
-      final near = border < math.max(1500.0, acc);
-      var conf = _confidenceFor(acc);
-      if (near) conf = _downgrade(conf);
-      return ZoneMatch(governorate: hit, confidence: conf, nearBorder: near);
-    }
-
-    // 3) coast / sea / coarse border → nearest governorate within tolerance
-    Governorate? nearest;
-    var nearestD = double.infinity;
-    for (final g in catalog.governorates) {
-      final d = g.edgeDistanceM(lat, lng);
-      if (d < nearestD) {
-        nearestD = d;
-        nearest = g;
-      }
-    }
-    if (nearest != null && nearestD <= approxToleranceM) {
-      return ZoneMatch(
-        governorate: nearest,
-        confidence: ZoneConfidence.low,
-        approximate: true,
-      );
-    }
-    return null; // outside Egypt
-  }
 
   ZoneMatch _applyHysteresis(
     ZoneMatch fresh,
@@ -116,27 +177,44 @@ final class ZoneResolver {
     double lng,
     double acc,
   ) {
-    if (fresh.primaryId == previous.primaryId) return fresh;
     final margin = math.max(150.0, acc.clamp(0.0, 1000.0).toDouble());
+    var district = fresh.district;
+    var governorate = fresh.governorate;
+    var highlight = fresh.highlight;
 
-    // Just stepped out of an area into the plain governorate → keep the area
-    // while still within [margin] of its edge.
-    final pa = previous.area;
-    if (pa != null &&
-        fresh.area == null &&
-        GeoMath.haversineM(lat, lng, pa.lat, pa.lng) <= pa.radiusM + margin) {
-      return previous;
+    // Just crossed a district border → keep the previous district while within
+    // [margin] of its edge.
+    final pd = previous.district;
+    if (pd != null &&
+        pd.shape != null &&
+        fresh.district?.id != pd.id &&
+        !fresh.approximate &&
+        pd.shape!.edgeDistanceM(lat, lng) <= margin) {
+      district = pd;
+      governorate = previous.governorate;
     }
 
-    // Crossed a governorate border → keep the previous governorate while still
-    // within [margin] of its border.
-    if (fresh.area == null &&
-        previous.area == null &&
-        fresh.governorate.id != previous.governorate.id &&
-        previous.governorate.edgeDistanceM(lat, lng) <= margin) {
-      return previous;
+    // Just left a destination circle → keep it while within [margin].
+    final ph = previous.highlight;
+    if (ph != null &&
+        fresh.highlight == null &&
+        GeoMath.haversineM(lat, lng, ph.lat, ph.lng) <= ph.radiusM + margin) {
+      highlight = ph;
     }
-    return fresh;
+
+    if (identical(district, fresh.district) &&
+        identical(highlight, fresh.highlight)) {
+      return fresh;
+    }
+    return ZoneMatch(
+      governorate: governorate,
+      district: district,
+      highlight: highlight,
+      confidence: fresh.confidence,
+      approximate: fresh.approximate,
+      nearBorder: fresh.nearBorder,
+      outsideZemam: fresh.outsideZemam,
+    );
   }
 
   static ZoneConfidence _confidenceFor(double acc) {

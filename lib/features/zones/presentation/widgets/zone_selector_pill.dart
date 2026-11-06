@@ -6,8 +6,8 @@ import 'package:hena_masr/features/zones/domain/entities/zone.dart';
 import 'package:hena_masr/features/zones/presentation/providers/zone_providers.dart';
 import 'package:hena_masr/features/zones/presentation/widgets/zone_picker_sheet.dart';
 
-/// Interactive, beautiful Zone Pill displayed in the AppBar or Header.
-/// Tapping it allows the user to switch or inspect their geographic zone.
+/// Interactive Zone Pill displayed in the AppBar or Header.
+/// Tapping it opens the ZonePickerSheet for manual or automatic selection.
 class ZoneSelectorPill extends ConsumerWidget {
   const ZoneSelectorPill({super.key});
 
@@ -21,17 +21,26 @@ class ZoneSelectorPill extends ConsumerWidget {
 
     String zoneName;
     if (state?.status == ZoneStatus.detecting && match == null) {
-      zoneName = isArabic ? 'تحديد الموقع...' : 'Detecting zone...';
+      zoneName = isArabic ? 'تحديد الموقع...' : 'Detecting...';
     } else if (state?.status == ZoneStatus.outsideEgypt) {
-      zoneName = isArabic ? 'خارج مصر (اختر منطقة)' : 'Outside Egypt (Pick zone)';
+      zoneName = isArabic ? 'خارج مصر (اختر منطقة)' : 'Outside Egypt';
     } else if (match != null) {
-      zoneName = isArabic ? match.nameAr : match.nameEn;
+      if (match.highlight != null) {
+        zoneName = isArabic ? match.highlight!.nameAr : match.highlight!.nameEn;
+      } else if (match.locality != null) {
+        zoneName = isArabic ? match.locality!.nameAr : match.locality!.nameEn;
+      } else if (match.district != null) {
+        zoneName = isArabic ? match.district!.nameAr : match.district!.nameEn;
+      } else {
+        zoneName = isArabic ? match.governorate.nameAr : match.governorate.nameEn;
+      }
     } else {
       zoneName = isArabic ? 'مصر' : 'Egypt';
     }
 
     final isManual = state?.source == ZoneSource.manual;
     final isDetecting = state?.status == ZoneStatus.detecting;
+    final isHighlight = match?.highlight != null;
 
     return Material(
       color: Colors.transparent,
@@ -41,12 +50,14 @@ class ZoneSelectorPill extends ConsumerWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: context.colors.surfaceContainerHighest.withValues(alpha: 0.65),
+            color: context.colors.surfaceContainerHighest.withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: isManual
-                  ? context.hena.gold.withValues(alpha: 0.5)
-                  : context.hena.turquoise.withValues(alpha: 0.35),
+              color: isHighlight
+                  ? context.hena.gold.withValues(alpha: 0.7)
+                  : isManual
+                      ? context.hena.gold.withValues(alpha: 0.5)
+                      : context.hena.turquoise.withValues(alpha: 0.4),
               width: 1.2,
             ),
           ),
@@ -64,22 +75,29 @@ class ZoneSelectorPill extends ConsumerWidget {
                 )
               else
                 Icon(
-                  isManual ? Icons.edit_location_alt_rounded : Icons.location_on_rounded,
+                  isHighlight
+                      ? Icons.star_rounded
+                      : isManual
+                          ? Icons.edit_location_alt_rounded
+                          : Icons.location_on_rounded,
                   size: 16,
-                  color: isManual ? context.hena.gold : context.hena.turquoiseText,
+                  color: isHighlight || isManual
+                      ? context.hena.gold
+                      : context.hena.turquoiseText,
                 ),
               const SizedBox(width: 6),
-              Flexible(
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 130),
                 child: Text(
                   zoneName,
-                  style: context.text.labelLarge?.copyWith(
+                  style: context.text.labelMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    letterSpacing: 0.2,
+                    letterSpacing: 0.1,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 3),
               Icon(
                 Icons.keyboard_arrow_down_rounded,
                 size: 18,
