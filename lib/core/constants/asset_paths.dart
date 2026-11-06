@@ -2,10 +2,13 @@ abstract final class AssetPaths {
   static const String appLogo = 'assets/icons/app_logo.png';
   static const String ankhIcon = 'assets/icons/ankh.svg';
 
-  // Flags
+  // Country Flags
   static const String flagEgypt = 'assets/icons/flags/flag-egypt.jpg';
   static const String flagBritain = 'assets/icons/flags/flag-britain.jpg';
   static const String flagRussia = 'assets/icons/flags/flag-russia.jpg';
+  static const String flagGermany = 'assets/icons/flags/flag-germany.jpg';
+  static const String flagItaly = 'assets/icons/flags/flag-italy.jpg';
+  static const String flagFrance = 'assets/icons/flags/flag-france.jpg';
 
   // Splash & Onboarding
   static const String splashImage = 'assets/images/splash/splash.png';
