@@ -155,7 +155,7 @@ class AnkhPainter extends CustomPainter {
       ..translate((size.width - _w * scale) / 2, (size.height - _h * scale) / 2)
       ..scale(scale);
 
-    const loopRect = Rect.fromCenter(center: Offset(24, 21), width: 28, height: 34);
+    final loopRect = Rect.fromCenter(center: const Offset(24, 21), width: 28, height: 34);
     const stemStart = Offset(24, 38);
     const stemEnd = Offset(24, 71);
     const armsStart = Offset(8, 49);
