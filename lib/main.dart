@@ -53,11 +53,9 @@ class HanaMasrApp extends StatelessWidget {
         const locale = Locale('ar');
 
         return MaterialApp(
-          useInheritedMediaQuery: true,
-          locale: kIsWeb ? DevicePreview.locale(context) : locale,
-          builder: kIsWeb ? DevicePreview.appBuilder : null,
           title: 'هنا مصر',
           debugShowCheckedModeBanner: false,
+          locale: locale,
           supportedLocales: AppLocales.supported,
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
@@ -67,6 +65,7 @@ class HanaMasrApp extends StatelessWidget {
           theme: AppTheme.light(locale),
           darkTheme: AppTheme.dark(locale),
           themeMode: themeController.mode,
+          builder: DevicePreview.appBuilder,
           home: const _AppRoot(),
         );
       },
