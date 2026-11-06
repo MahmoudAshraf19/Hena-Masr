@@ -41,8 +41,9 @@ abstract final class AssetPaths {
     };
   }
 
-  // Splash & Onboarding
+  // Splash, Language & Onboarding
   static const String splashImage = 'assets/images/splash/splash.png';
+  static const String selectLanguageBg = 'assets/images/select_language/select_language.png';
   static const String onboarding1 = 'assets/images/onboarding/onboarding1.png';
   static const String onboarding2 = 'assets/images/onboarding/onboarding2.png';
   static const String onboarding3 = 'assets/images/onboarding/onboarding3.png';

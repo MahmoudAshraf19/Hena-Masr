@@ -257,6 +257,7 @@ flutter test --coverage
   - [x] Full 15-Language internationalization suite
   - [x] Schema v2 Zones Engine (27 Governorates, 403 Districts, 42 Highlights, 1,275 Localities)
   - [x] Minimalist Architecture (main.dart with Pharaonic 3D Ankh SplashScreen & autonomous Location/Zone Controllers)
+  - [x] Select Language Screen (15-Language animated selector with native flags, English default, and Pharaonic artwork)
 - [ ] **Phase 2: Core Experience**
   - [ ] Multi-City Guide database (Cairo, Giza, Luxor, Aswan, Alexandria, Red Sea)
   - [ ] Scam Shield & Fair Price reference cards

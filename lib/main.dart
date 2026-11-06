@@ -9,8 +9,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/di/providers.dart';
+import 'core/localization/locale_controller.dart';
 import 'core/localization/supported_locales.dart';
 import 'core/theme/theme.dart';
+import 'features/language/presentation/screens/select_language_screen.dart';
 import 'features/splash/presentation/screens/splash_screen.dart';
 
 void main() async {
@@ -45,24 +47,24 @@ void main() async {
   });
 }
 
-class HanaMasrApp extends StatelessWidget {
+class HanaMasrApp extends ConsumerWidget {
   const HanaMasrApp({super.key, required this.themeController});
 
   final ThemeController themeController;
 
   @override
-  Widget build(BuildContext context) {
-    debugPrint('🏗️ [HanaMasr App] Building MaterialApp (SplashScreen active)...');
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentLocale = ref.watch(localeProvider);
+    debugPrint('🏗️ [HanaMasr App] Building MaterialApp (Locale: ${currentLocale.languageCode})...');
+
     return ListenableBuilder(
       listenable: themeController,
       builder: (context, _) {
-        const defaultLocale = Locale('ar');
-
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           title: 'هنا مصر',
-          // DevicePreview integration
-          locale: DevicePreview.locale(context),
+          // DevicePreview integration with fallback to Riverpod locale
+          locale: DevicePreview.locale(context) ?? currentLocale,
           builder: DevicePreview.appBuilder,
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
@@ -70,11 +72,48 @@ class HanaMasrApp extends StatelessWidget {
             GlobalCupertinoLocalizations.delegate,
           ],
           supportedLocales: AppLocales.supported,
-          theme: AppTheme.light(defaultLocale),
-          darkTheme: AppTheme.dark(defaultLocale),
+          theme: AppTheme.light(currentLocale),
+          darkTheme: AppTheme.dark(currentLocale),
           themeMode: themeController.mode,
-          home: const SplashScreen(),
+          home: const _AppRoot(),
         );
+      },
+    );
+  }
+}
+
+class _AppRoot extends StatefulWidget {
+  const _AppRoot();
+
+  @override
+  State<_AppRoot> createState() => _AppRootState();
+}
+
+class _AppRootState extends State<_AppRoot> {
+  bool _splashFinished = false;
+
+  @override
+  Widget build(BuildContext context) {
+    // 1. Pharaonic 3D Splash Screen
+    if (!_splashFinished) {
+      debugPrint('🏺 [HanaMasr Navigator] Stage 1: Rendering SplashScreen...');
+      return SplashScreen(
+        onInitialized: () {
+          debugPrint('✅ [HanaMasr Navigator] Splash finished! Navigating to SelectLanguageScreen...');
+          if (mounted) {
+            setState(() {
+              _splashFinished = true;
+            });
+          }
+        },
+      );
+    }
+
+    // 2. Language Selection Screen
+    debugPrint('🌐 [HanaMasr Navigator] Stage 2: Rendering SelectLanguageScreen...');
+    return SelectLanguageScreen(
+      onContinue: () {
+        debugPrint('🎯 [HanaMasr Navigator] Language selected! Ready for next step.');
       },
     );
   }
