@@ -380,23 +380,12 @@ class _SelectLanguageScreenState extends ConsumerState<SelectLanguageScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 10, 24, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _reveal(
-                          begin: 0.0,
-                          end: 0.4,
-                          child: _buildTopBar(),
-                        ),
-                        const SizedBox(height: 26),
-                        _reveal(
-                          begin: 0.08,
-                          end: 0.55,
-                          dy: 30,
-                          child: _buildHeadline(headline),
-                        ),
-                      ],
+                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                    child: _reveal(
+                      begin: 0.04,
+                      end: 0.50,
+                      dy: 24,
+                      child: _buildHeadline(headline),
                     ),
                   ),
                   Expanded(child: _buildGrid(bottomInset)),
@@ -487,79 +476,6 @@ class _SelectLanguageScreenState extends ConsumerState<SelectLanguageScreen>
   }
 
   // ───────────────────────────── header ─────────────────────────────
-
-  Widget _buildTopBar() {
-    return Row(
-      children: [
-        Container(
-          width: 38,
-          height: 38,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [_P.goldLight, _P.gold, _P.goldDeep],
-            ),
-          ),
-          child: const Icon(
-            Icons.location_on_rounded,
-            size: 21,
-            color: _P.ink,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'HENA MASAR',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 2.6,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              'Explore Egypt · Your Way',
-              style: TextStyle(
-                fontSize: 10.5,
-                fontWeight: FontWeight.w400,
-                letterSpacing: 0.6,
-                color: Colors.white.withValues(alpha: 0.55),
-              ),
-            ),
-          ],
-        ),
-        const Spacer(),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.language_rounded, size: 15, color: _P.gold),
-              const SizedBox(width: 6),
-              Text(
-                '${kLanguageItems.length}',
-                style: const TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 
   /// Headline that morphs into the language currently being previewed.
   Widget _buildHeadline(LanguageItem item) {
