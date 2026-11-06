@@ -36,16 +36,13 @@ void main() async {
 
     debugPrint('📱 [HanaMasr Step 5/5] Launching runApp with DevicePreview & ProviderScope...');
     runApp(
-      ProviderScope(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(prefs),
-        ],
-        child: DevicePreview(
-          // Always enabled on web with fresh memory storage (ignores disabled localStorage)
-          enabled: true,
-          storage: DevicePreviewStorage.none(),
-          isToolbarVisible: true,
-          builder: (context) => HanaMasrApp(themeController: themeController),
+      DevicePreview(
+        enabled: !kReleaseMode,
+        builder: (context) => ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+          ],
+          child: HanaMasrApp(themeController: themeController),
         ),
       ),
     );

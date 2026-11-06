@@ -16,11 +16,11 @@
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>Hana Masr</title>
+  <title>هنا مصر</title>
   <link rel="manifest" href="manifest.json">
 
-  <!-- Explicit Geolocation permissions policy for Web -->
-  <meta http-equiv="Permissions-Policy" content="geolocation=(self)">
+  <!-- Permissions Policy for Web Geolocation -->
+  <meta http-equiv="Permissions-Policy" content="geolocation=*">
 
   <style>
     body {
@@ -30,103 +30,9 @@
       overflow: hidden;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
-    #splash-container {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: #17202A url('splash.png') no-repeat center center;
-      background-size: cover;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      align-items: center;
-      z-index: 99999;
-      transition: opacity 0.5s ease-out;
-    }
-    .loader-box {
-      margin-bottom: 48px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-    }
-    .ankh-svg {
-      width: 42px;
-      height: 66px;
-      animation: spinY 1.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
-      filter: drop-shadow(0 0 10px rgba(212, 162, 76, 0.6));
-    }
-    .progress-bar-capsule {
-      width: 170px;
-      height: 4.5px;
-      background: rgba(0, 0, 0, 0.5);
-      border-radius: 99px;
-      overflow: hidden;
-      position: relative;
-    }
-    .progress-bar-fill {
-      height: 100%;
-      width: 40%;
-      background: linear-gradient(90deg, #8C6422, #D4A24C, #FBE49D);
-      border-radius: 99px;
-      box-shadow: 0 0 10px #D4A24C;
-      animation: progressIndeterminate 1.8s infinite ease-in-out;
-    }
-    @keyframes spinY {
-      0% { transform: perspective(600px) rotateY(0deg); }
-      100% { transform: perspective(600px) rotateY(360deg); }
-    }
-    @keyframes progressIndeterminate {
-      0% { transform: translateX(-100%); }
-      50% { transform: translateX(50%); }
-      100% { transform: translateX(200%); }
-    }
   </style>
 </head>
 <body>
-  <div id="splash-container">
-    <div class="loader-box">
-      <!-- Egyptian Ankh Symbol SVG with Royal 24K Gold Gradient and Turquoise Gem -->
-      <svg class="ankh-svg" viewBox="0 0 48 76" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="ankhGoldGrad" x1="16" y1="4" x2="32" y2="72" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stop-color="#FFFDE7" />
-            <stop offset="25%" stop-color="#FFE082" />
-            <stop offset="55%" stop-color="#FFD700" />
-            <stop offset="82%" stop-color="#FF8F00" />
-            <stop offset="100%" stop-color="#C67D00" />
-          </linearGradient>
-          <radialGradient id="turquoiseGrad" cx="45%" cy="40%" r="55%">
-            <stop offset="0%" stop-color="#84FFFF" />
-            <stop offset="60%" stop-color="#00E5FF" />
-            <stop offset="100%" stop-color="#00695C" />
-          </radialGradient>
-          <filter id="ankhShadow" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="0" dy="1.5" stdDeviation="1.8" flood-color="#000000" flood-opacity="0.75" />
-          </filter>
-        </defs>
-        <g filter="url(#ankhShadow)">
-          <ellipse cx="24" cy="21" rx="14" ry="17" stroke="url(#ankhGoldGrad)" stroke-width="7.5"/>
-          <line x1="24" y1="38" x2="24" y2="71" stroke="url(#ankhGoldGrad)" stroke-width="7.5" stroke-linecap="round"/>
-          <line x1="8" y1="49" x2="40" y2="49" stroke="url(#ankhGoldGrad)" stroke-width="7.5" stroke-linecap="round"/>
-          <circle cx="24" cy="21" r="6.5" fill="#8C5C00" />
-          <circle cx="24" cy="21" r="5.2" fill="url(#turquoiseGrad)" />
-          <circle cx="22.6" cy="19.3" r="1.6" fill="#FFFFFF" />
-        </g>
-      </svg>
-      <div class="progress-bar-capsule">
-        <div class="progress-bar-fill"></div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    window.addEventListener('load', function() {
-      // Flutter bootstrap will start loading
-    });
-  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
